@@ -1,8 +1,8 @@
 {
 	"name": "link-favicon",
-	"version": "0.12.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
-	"main": "main.js",
+	"version": "1.0.0",
+	"description": "See the favicon for a linked website. ",
+	"main": "src/main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "node esbuild.config.mjs production"
