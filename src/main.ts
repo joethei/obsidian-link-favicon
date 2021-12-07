@@ -7,6 +7,7 @@ export default class FaviconPlugin extends Plugin {
 
 	isDisabled(el: Element) {
 		if (el.getAttribute("data-no-favicon")) return true;
+		if (el.getAttribute("data-favicon")) return true;
 	}
 
 	async onload() {
@@ -14,19 +15,24 @@ export default class FaviconPlugin extends Plugin {
 		await this.loadSettings();
 		this.addSettingTab(new FaviconSettings(this.app, this));
 
-		this.registerMarkdownPostProcessor(async (element, _) => {
+		this.registerMarkdownPostProcessor(async (element, context) => {
+			if(context.sourcePath.length === 0) {
+				return;
+			}
+
 			const provider = IconProvider.providers.find((provider) => provider.id === this.settings.provider);
 			const fallbackProvider = IconProvider.providers.find((provider) => provider.id === this.settings.fallbackProvider);
 
-			if(!provider || !fallbackProvider) {
+			if (!provider || !fallbackProvider) {
 				console.log("Link Favicons: misconfigured providers");
 				return;
 			}
 
-			const links = element.querySelectorAll("a.external-link");
+			const links = element.querySelectorAll("a.external-link:not([data-favicon])");
 			for (let index = 0; index < links.length; index++) {
 				const link = links.item(index) as HTMLAnchorElement;
 				if (!this.isDisabled(link)) {
+					link.dataset.favicon = "true";
 					let domain;
 					try {
 						domain = new URL(link.href);
@@ -34,13 +40,13 @@ export default class FaviconPlugin extends Plugin {
 						console.log("Link Favicons: invalid url: " + link.href);
 					}
 
-					if(!this.settings.ignored.split("\n").contains(domain.hostname) && domain) {
+					if (!this.settings.ignored.split("\n").contains(domain.hostname) && domain) {
 
 						//html only image fallback taken from: https://dev.to/albertodeago88/html-only-image-fallback-19im
 						const el = document.createElement("object");
 
 						el.addClass("link-favicon");
-						el.setAttribute("data-host", domain.hostname);
+						el.dataset.host = domain.hostname;
 
 						el.data = await provider.url(domain.hostname, this.settings);
 						//only png and icon are ever used by any provider
@@ -57,7 +63,6 @@ export default class FaviconPlugin extends Plugin {
 						img.style.height = "0.8em";
 						img.style.display = "inline-block";
 
-						link.setAttribute("data-favicon", "true");
 						link.prepend(el);
 					}
 				}
