@@ -1,16 +1,21 @@
 import {App, PluginSettingTab, Setting} from "obsidian";
 import FaviconPlugin from "./main";
+import IconProvider from "./provider";
 
 export interface FaviconPluginSettings {
 	provider: string;
+	fallbackProvider: string;
+	providerDomain: string;
+	fallbackProviderDomain: string;
 	ignored: string;
-	customDomain: string;
 }
 
 export const DEFAULT_SETTINGS: FaviconPluginSettings = {
-	provider: 'google',
+	provider: 'duckduckgo',
+	fallbackProvider: 'google',
+	providerDomain: '',
+	fallbackProviderDomain: '',
 	ignored: '',
-	customDomain: '',
 }
 
 export class FaviconSettings extends PluginSettingTab {
@@ -31,13 +36,10 @@ export class FaviconSettings extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Icon Provider")
 			.addDropdown((dropdown) => {
+				for(const provider of IconProvider.providers) {
+					dropdown.addOption(provider.id, provider.name);
+				}
 				dropdown
-					.addOption("google", "Google")
-					.addOption("duckduckgo", "DuckDuckGo")
-					.addOption("splitbee", "Splitbee")
-					.addOption("favicongrabber", "FaviconGrabber")
-					.addOption("besticon", "The Favicon Finder")
-					.addOption("iconhorse", "Icon Horse")
 					.setValue(this.plugin.settings.provider)
 					.onChange(async (value) => {
 						this.plugin.settings.provider = value;
@@ -49,11 +51,38 @@ export class FaviconSettings extends PluginSettingTab {
 		if (Array.of("besticon").includes(this.plugin.settings.provider)) {
 			new Setting(containerEl)
 				.setName('Provider Domain')
-				.setDesc('This Provider can be selfhosted, please specify your deployment url. Refer to the readme for deployment instructions.')
+				.setDesc('This Provider is be selfhosted, please specify your deployment url. Refer to the readme of the provider for deployment instructions.')
 				.addText(text => text
-					.setValue(this.plugin.settings.customDomain)
+					.setValue(this.plugin.settings.providerDomain)
 					.onChange(async (value) => {
-						this.plugin.settings.customDomain = value;
+						this.plugin.settings.providerDomain = value;
+						await this.plugin.saveSettings();
+					}));
+		}
+
+		new Setting(containerEl)
+			.setName("Fallback Icon Provider")
+			.addDropdown((dropdown) => {
+				for(const provider of IconProvider.providers) {
+					dropdown.addOption(provider.id, provider.name);
+				}
+				dropdown
+					.setValue(this.plugin.settings.fallbackProvider)
+					.onChange(async (value) => {
+						this.plugin.settings.fallbackProvider = value;
+						await this.plugin.saveSettings();
+						this.display();
+					})
+			});
+
+		if (Array.of("besticon").includes(this.plugin.settings.fallbackProvider)) {
+			new Setting(containerEl)
+				.setName('Fallback Provider Domain')
+				.setDesc('This Provider is be selfhosted, please specify your deployment url. Refer to the readme of the provider for deployment instructions.')
+				.addText(text => text
+					.setValue(this.plugin.settings.fallbackProviderDomain)
+					.onChange(async (value) => {
+						this.plugin.settings.fallbackProviderDomain = value;
 						await this.plugin.saveSettings();
 					}));
 		}

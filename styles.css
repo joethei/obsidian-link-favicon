@@ -1,6 +1,6 @@
-img.link-favicon{
+.link-favicon{
 	vertical-align: bottom;
-	margin-bottom: 3px;
-	margin-left: 0;
-	height: 1em;
+	margin-bottom: 6px;
+	margin-left: 2px;
+	cursor: pointer !important;
 }
