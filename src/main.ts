@@ -1,6 +1,6 @@
 import {Plugin} from 'obsidian';
 import {DEFAULT_SETTINGS, FaviconPluginSettings, FaviconSettings} from "./settings";
-import IconProvider from "./provider";
+import {providers} from "./provider";
 
 export default class FaviconPlugin extends Plugin {
 	settings: FaviconPluginSettings;
@@ -20,8 +20,8 @@ export default class FaviconPlugin extends Plugin {
 				return;
 			}
 
-			const provider = IconProvider.providers.find((provider) => provider.id === this.settings.provider);
-			const fallbackProvider = IconProvider.providers.find((provider) => provider.id === this.settings.fallbackProvider);
+			const provider = providers[this.settings.provider];
+			const fallbackProvider = providers[this.settings.fallbackProvider];
 
 			if (!provider || !fallbackProvider) {
 				console.log("Link Favicons: misconfigured providers");
@@ -33,37 +33,35 @@ export default class FaviconPlugin extends Plugin {
 				const link = links.item(index) as HTMLAnchorElement;
 				if (!this.isDisabled(link)) {
 					link.dataset.favicon = "true";
-					let domain;
 					try {
-						domain = new URL(link.href);
+						const domain = new URL(link.href);
+						if (!this.settings.ignored.split("\n").contains(domain.hostname)) {
+
+							//html only image fallback taken from: https://dev.to/albertodeago88/html-only-image-fallback-19im
+							const el = document.createElement("object");
+
+							el.addClass("link-favicon");
+							el.dataset.host = domain.hostname;
+
+							el.data = await provider.url(domain.hostname, this.settings);
+							//only png and icon are ever used by any provider
+							el.data.contains(".ico") ? el.type = "image/x-icon" : el.type = "image/png";
+
+							//making sure these styles will not be overwritten by any other theme/plugin
+							//i.e. page preview sets height: auto, which creates huge icons.
+							el.style.height = "0.8em";
+							el.style.display = "inline-block";
+
+							const img = el.createEl("img");
+							img.src = await fallbackProvider.url(domain.hostname, this.settings);
+							img.addClass("link-favicon");
+							img.style.height = "0.8em";
+							img.style.display = "inline-block";
+
+							link.prepend(el);
+						}
 					} catch (e) {
 						console.log("Link Favicons: invalid url: " + link.href);
-					}
-
-					if (!this.settings.ignored.split("\n").contains(domain.hostname) && domain) {
-
-						//html only image fallback taken from: https://dev.to/albertodeago88/html-only-image-fallback-19im
-						const el = document.createElement("object");
-
-						el.addClass("link-favicon");
-						el.dataset.host = domain.hostname;
-
-						el.data = await provider.url(domain.hostname, this.settings);
-						//only png and icon are ever used by any provider
-						el.data.contains(".ico") ? el.type = "image/x-icon" : el.type = "image/png";
-
-						//making sure these styles will not be overwritten by any other theme/plugin
-						//i.e. page preview sets height: auto, which creates huge icons.
-						el.style.height = "0.8em";
-						el.style.display = "inline-block";
-
-						const img = el.createEl("img");
-						img.src = await fallbackProvider.url(domain.hostname, this.settings);
-						img.addClass("link-favicon");
-						img.style.height = "0.8em";
-						img.style.display = "inline-block";
-
-						link.prepend(el);
 					}
 				}
 			}

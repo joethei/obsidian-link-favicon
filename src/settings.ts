@@ -1,6 +1,6 @@
 import {App, PluginSettingTab, Setting} from "obsidian";
 import FaviconPlugin from "./main";
-import IconProvider from "./provider";
+import {providers} from "./provider";
 
 export interface FaviconPluginSettings {
 	provider: string;
@@ -36,8 +36,10 @@ export class FaviconSettings extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Icon Provider")
 			.addDropdown((dropdown) => {
-				for(const provider of IconProvider.providers) {
-					dropdown.addOption(provider.id, provider.name);
+				for(const id in providers) {
+					if(providers.hasOwnProperty(id)) {
+						dropdown.addOption(id, providers[id].name);
+					}
 				}
 				dropdown
 					.setValue(this.plugin.settings.provider)
@@ -63,8 +65,10 @@ export class FaviconSettings extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Fallback Icon Provider")
 			.addDropdown((dropdown) => {
-				for(const provider of IconProvider.providers) {
-					dropdown.addOption(provider.id, provider.name);
+				for(const id in providers) {
+					if(providers.hasOwnProperty(id)) {
+						dropdown.addOption(id, providers[id].name);
+					}
 				}
 				dropdown
 					.setValue(this.plugin.settings.fallbackProvider)
