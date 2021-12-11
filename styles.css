@@ -1,6 +1,8 @@
 .link-favicon{
 	vertical-align: bottom;
-	margin-bottom: 6px;
-	margin-left: 2px;
+	margin-bottom: 0.3em;
+	margin-left: 0.1em;
+	margin-right: 0.1em;
 	cursor: pointer !important;
+	image-rendering: -webkit-optimize-contrast;
 }

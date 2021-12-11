@@ -8,6 +8,8 @@ export default class FaviconPlugin extends Plugin {
 	isDisabled(el: Element) {
 		if (el.getAttribute("data-no-favicon")) return true;
 		if (el.getAttribute("data-favicon")) return true;
+		const style = getComputedStyle(el, ":before").getPropertyValue("background-url");
+		console.log(style);
 	}
 
 	async onload() {
@@ -15,10 +17,7 @@ export default class FaviconPlugin extends Plugin {
 		await this.loadSettings();
 		this.addSettingTab(new FaviconSettings(this.app, this));
 
-		this.registerMarkdownPostProcessor(async (element, context) => {
-			if(context.sourcePath.length === 0) {
-				return;
-			}
+		this.registerMarkdownPostProcessor(async (element, _) => {
 
 			const provider = providers[this.settings.provider];
 			const fallbackProvider = providers[this.settings.fallbackProvider];
@@ -56,7 +55,7 @@ export default class FaviconPlugin extends Plugin {
 							img.src = await fallbackProvider.url(domain.hostname, this.settings);
 							img.addClass("link-favicon");
 							img.style.height = "0.8em";
-							img.style.display = "inline-block";
+							img.style.display = "block";
 
 							link.prepend(el);
 						}
