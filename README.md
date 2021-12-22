@@ -32,6 +32,15 @@ Works with: [Admonition](https://github.com/valentine195/obsidian-admonition)
 
 Also check out [Link Favicons for Firefox & Chromium based browsers](https://github.com/joethei/browser-favicon-links)
 
+
+## Overwriting icons
+
+If you want to overwrite some icons with your own,
+you can do so by installing the 
+[Icon Shortcodes](https://github.com/aidenlx/obsidian-icon-shortcodes) plugin.
+You are then able to overwrite icons for domains, as well as define icons for non web links
+with icons from the plugin.
+
 ### For Designers
 
 If you want to style the favicons you can use a CSS snippet similar to the one below, which makes all favicons appear in
@@ -61,5 +70,6 @@ the [Obsidian Members Group Discord](https://obsidian.md/community)
 
 As long as you use
 the [renderMarkdown](https://marcus.se.net/obsidian-plugin-docs/api/classes/MarkdownRenderer#rendermarkdown)
-Method this plugin will add favicons to your external links. You can specify the Attribute `data-no-favicon` if you
-wan't your link to be ignored.
+Method this plugin will add favicons to your external links.
+If you want no link favicons in your plugin either add `no-favicon` to your source path when calling the method.
+Or specify the Attribute `data-no-favicon` on your link.

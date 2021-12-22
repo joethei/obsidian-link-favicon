@@ -6,3 +6,12 @@
 	cursor: pointer !important;
 	image-rendering: -webkit-optimize-contrast;
 }
+
+.link-favicon-preview {
+	font-size: 50px;
+	text-align: center;
+}
+
+.link-favicon-preview img{
+	height: 50px;
+}
