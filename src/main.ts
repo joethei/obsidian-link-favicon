@@ -11,7 +11,7 @@ export default class FaviconPlugin extends Plugin {
 		if (el.getAttribute("data-favicon")) return true;
 	}
 
-	displayCustomIcon(icons: OverwrittenFavicon[], link: HTMLAnchorElement): boolean {
+	displayCustomIcon(icons: OverwrittenFavicon[], link: HTMLAnchorElement, domain: string): boolean {
 		if (icons.length > 0) {
 			const iconApi = getApi(this);
 			const icon = icons[0].icon;
@@ -19,6 +19,7 @@ export default class FaviconPlugin extends Plugin {
 			if (icon2 !== null) {
 				if (typeof icon2 !== "string") {
 					icon2.addClass("link-favicon");
+					icon2.dataset.host = domain;
 				}
 				link.prepend(icon2);
 				return true;
@@ -57,7 +58,7 @@ export default class FaviconPlugin extends Plugin {
 						if (!domain.protocol.contains("http")) {
 							if(isPluginEnabled(this)) {
 								const icons = this.settings.protocol.filter((overwritten) => overwritten.domain === domain.protocol.replace(/:/g, ''));
-								if (this.displayCustomIcon(icons, link))
+								if (this.displayCustomIcon(icons, link, domain.protocol))
 									continue;
 							}
 						}
@@ -69,7 +70,7 @@ export default class FaviconPlugin extends Plugin {
 						//custom domain icons
 						if (isPluginEnabled(this)) {
 							const icons = this.settings.overwritten.filter((overwritten) => overwritten.domain === domain.hostname);
-							if (this.displayCustomIcon(icons, link))
+							if (this.displayCustomIcon(icons, link, domain.hostname))
 								continue;
 						}
 
