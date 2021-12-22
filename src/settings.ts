@@ -199,7 +199,7 @@ export class FaviconSettings extends PluginSettingTab {
 
 
 
-			containerEl.createEl("h3", {text: "for Protocols"});
+			containerEl.createEl("h3", {text: "for URI Schemas"});
 
 			new Setting(containerEl)
 				.setName("Add New")
@@ -209,7 +209,7 @@ export class FaviconSettings extends PluginSettingTab {
 						.setTooltip("add custom icon")
 						.setIcon("plus-with-circle")
 						.onClick(async () => {
-							const modal = new OverwrittenIconModal(this.plugin, null, "Protocol");
+							const modal = new OverwrittenIconModal(this.plugin, null, "URI Schema");
 
 							modal.onClose = async () => {
 								if (modal.saved) {
@@ -246,7 +246,7 @@ export class FaviconSettings extends PluginSettingTab {
 						b.setIcon("pencil")
 							.setTooltip("Edit")
 							.onClick(() => {
-								const modal = new OverwrittenIconModal(this.plugin, protocol, "Protocol");
+								const modal = new OverwrittenIconModal(this.plugin, protocol, "URI Schema");
 
 								modal.onClose = async () => {
 									if (modal.saved) {
