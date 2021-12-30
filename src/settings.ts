@@ -189,7 +189,10 @@ export class FaviconSettings extends PluginSettingTab {
 						b.setIcon("trash")
 							.setTooltip("Delete")
 							.onClick(async () => {
-
+								this.plugin.settings.overwritten = this.plugin.settings.overwritten.filter((tmp) => {
+									return overwritten.domain !== tmp.domain;
+								});
+								await this.plugin.saveSettings();
 								this.display();
 							});
 					});

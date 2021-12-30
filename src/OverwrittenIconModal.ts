@@ -55,18 +55,42 @@ export class OverwrittenIconModal extends Modal {
 					});
 			});
 
-		new Setting(contentEl)
-			.setName("Icon")
-			.addText((text) => {
-				text
-					.setValue(this.icon)
-					.onChange((value) => {
-						this.icon = value;
-						if(previewEL) {
-							this.displayPreview(previewEL);
-						}
+		const api = getApi(this.plugin);
+		if (api) {
+			if (api.version.compare(">=", "0.6.1")) {
+
+				new Setting(contentEl)
+					.setName("Icon")
+					.addButton((button) => {
+						button
+							.setButtonText("Choose")
+							.onClick(async() => {
+								const icon = await api.getIconFromUser();
+								console.log(icon);
+								if(icon) {
+									this.icon = icon.id;
+									if(previewEL) {
+										await this.displayPreview(previewEL);
+									}
+								}
+							});
 					});
-			});
+
+			}else {
+				new Setting(contentEl)
+					.setName("Icon")
+					.addText((text) => {
+						text
+							.setValue(this.icon)
+							.onChange(async(value) => {
+								this.icon = value;
+								if(previewEL) {
+									await this.displayPreview(previewEL);
+								}
+							});
+					});
+			}
+		}
 
 		previewEL = contentEl.createDiv("preview");
 
