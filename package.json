@@ -1,6 +1,6 @@
 {
 	"name": "link-favicon",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"description": "See the favicon for a linked website. ",
 	"main": "src/main.js",
 	"scripts": {
@@ -16,7 +16,7 @@
 		"@codemirror/language": "^0.19.7",
 		"@codemirror/rangeset": "^0.19.5",
 		"@codemirror/state": "^0.19.6",
-		"@codemirror/stream-parser": "^0.19.3",
+		"@codemirror/stream-parser": "https://github.com/lishid/stream-parser",
 		"@codemirror/view": "^0.19.37",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "^5.2.0",

@@ -3,7 +3,6 @@ import { EditorView, Decoration, DecorationSet, ViewUpdate, ViewPlugin, WidgetTy
 import { StateField, StateEffect, StateEffectType } from "@codemirror/state";
 import { Range } from "@codemirror/rangeset";
 import { syntaxTree } from "@codemirror/language";
-// @ts-ignore
 import { tokenClassNodeProp } from "@codemirror/stream-parser";
 import FaviconPlugin from "./main";
 import {providers} from "./provider";
@@ -170,9 +169,14 @@ class IconWidget extends WidgetType {
 	}
 
 	toDOM() {
+
+		if(!this.icon || this.icon === "") {
+			return document.createElement("span");
+		}
+
 		if(typeof this.icon === "string") {
 			if(!this.icon.startsWith("http")) {
-				let span = document.createElement("span");
+				const span = document.createElement("span");
 				span.textContent = this.icon;
 				span.className = "link-favicon";
 				return span;

@@ -46,7 +46,6 @@ export default class FaviconPlugin extends Plugin {
 					customSchemeIcon.dataset.host = domain.hostname;
 				}
 				return customSchemeIcon;
-
 			}
 		}
 
@@ -109,6 +108,10 @@ export default class FaviconPlugin extends Plugin {
 					const fallbackIcon = await this.getIcon(domain, fallbackProvider);
 
 					let el;
+
+					if(!icon || icon === "") {
+						continue;
+					}
 
 					if (typeof icon === "string") {
 						if(!icon.startsWith("http")) {
