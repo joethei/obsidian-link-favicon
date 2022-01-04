@@ -47,10 +47,11 @@ export default class FaviconPlugin extends Plugin {
 				}
 				return customSchemeIcon;
 			}
+			return null;
 		}
 
 		if (this.settings.ignored.split("\n").contains(domain.hostname)) {
-			return "";
+			return null;
 		}
 
 		//custom domain icons
@@ -109,6 +110,7 @@ export default class FaviconPlugin extends Plugin {
 					let el: string | HTMLObjectElement | HTMLImageElement;
 
 					if (!icon || icon === "") {
+						console.log("no icon for " + domain.href);
 						continue;
 					}
 
