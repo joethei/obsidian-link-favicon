@@ -66,7 +66,6 @@ export class OverwrittenIconModal extends Modal {
 							.setButtonText("Choose")
 							.onClick(async() => {
 								const icon = await api.getIconFromUser();
-								console.log(icon);
 								if(icon) {
 									this.icon = icon.id;
 									if(previewEL) {

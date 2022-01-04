@@ -1,5 +1,5 @@
 import {Plugin} from 'obsidian';
-import {DEFAULT_SETTINGS, FaviconPluginSettings, FaviconSettings, OverwrittenFavicon} from "./settings";
+import {DEFAULT_SETTINGS, FaviconPluginSettings, FaviconSettings} from "./settings";
 import {IconProvider, providers} from "./provider";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
 import {Prec} from "@codemirror/state";
@@ -27,7 +27,7 @@ export default class FaviconPlugin extends Plugin {
 
 	getCustomSchemeIcon(scheme: string): string | HTMLImageElement {
 		if (isPluginEnabled(this)) {
-			const icons = this.settings.protocol.filter(value => value.domain === scheme.substr(0, scheme.length-1));
+			const icons = this.settings.protocol.filter(value => value.domain === scheme.substr(0, scheme.length - 1));
 			if (icons.length > 0) {
 				const iconApi = getApi(this);
 				const icon = icons[0].icon;
@@ -64,7 +64,6 @@ export default class FaviconPlugin extends Plugin {
 		}
 
 		return provider.url(domain.hostname, this.settings);
-
 	}
 
 	async onload() {
@@ -97,31 +96,49 @@ export default class FaviconPlugin extends Plugin {
 
 					try {
 						domain = new URL(link.href);
-					}catch (e) {
+					} catch (e) {
 						console.error("Invalid url: " + link.href);
 						console.error(e);
 					}
 
-					if(!domain) continue;
+					if (!domain) continue;
 
 					const icon = await this.getIcon(domain, provider);
 					const fallbackIcon = await this.getIcon(domain, fallbackProvider);
 
-					let el;
+					let el: string | HTMLObjectElement | HTMLImageElement;
 
-					if(!icon || icon === "") {
+					if (!icon || icon === "") {
 						continue;
 					}
 
 					if (typeof icon === "string") {
-						if(!icon.startsWith("http")) {
+						if (!icon.startsWith("http")) {
 							el = icon;
-						}else {
+						} else {
 							//html only image fallback taken from: https://dev.to/albertodeago88/html-only-image-fallback-19im
 							el = document.createElement("object");
 							el.addClass("link-favicon");
 							el.dataset.host = domain.hostname;
 							el.data = icon;
+
+							/*if (typeof el !== "string") {
+								const tmpImg = document.createElement("img");
+								tmpImg.crossOrigin = 'anonymous';
+								tmpImg.src = icon;
+								fac.getColorAsync(tmpImg).then(color => {
+									console.log(color.hex);
+									if (typeof el !== "string") {
+										el.dataset.averageColor = color.rgb;
+									}
+									link.append(tmpImg);
+								}).catch(e => {
+									console.error(e);
+								}).finally(() => {
+									tmpImg.remove();
+								});
+							}*/
+
 							//only png and icon are ever used by any provider
 							el.data.contains(".ico") ? el.type = "image/x-icon" : el.type = "image/png";
 
@@ -137,10 +154,16 @@ export default class FaviconPlugin extends Plugin {
 
 					if (!el) continue;
 
-					if(typeof el !== "string" && typeof fallbackIcon === "string") {
+					if (typeof el !== "string" && typeof fallbackIcon === "string") {
 						const img = el.createEl("img");
+						//img.crossOrigin = "anonymous";
 						img.src = fallbackIcon;
 						img.addClass("link-favicon");
+						/*fac.getColorAsync(img).then(color => {
+							img.dataset.averageColor = color.hex;
+						}).catch(e => {
+							console.error(e);
+						});*/
 						img.style.height = "0.8em";
 						img.style.display = "block";
 
@@ -156,6 +179,7 @@ export default class FaviconPlugin extends Plugin {
 	}
 
 	onunload() {
+		//fac.destroy();
 		console.log("disabling plugin: link favicons");
 	}
 

@@ -5,6 +5,7 @@
 	margin-right: 0.1em;
 	cursor: pointer !important;
 	image-rendering: -webkit-optimize-contrast;
+	max-height: 1em;
 }
 
 .link-favicon-preview {

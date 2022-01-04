@@ -29,7 +29,7 @@ class StatefulDecorationSet {
 
 	async computeAsyncDecorations(tokens: TokenSpec[]): Promise<DecorationSet | null> {
 		const decorations: Range<Decoration>[] = [];
-		for (let token of tokens) {
+		for (const token of tokens) {
 			let deco = this.decoCache[token.value];
 			if (!deco) {
 
@@ -88,7 +88,7 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 
 			buildAsyncDecorations(view: EditorView) {
 				const targetElements: TokenSpec[] = [];
-				for (let {from, to} of view.visibleRanges) {
+				for (const {from, to} of view.visibleRanges) {
 					const tree = syntaxTree(view.state);
 					tree.iterate({
 						from,
@@ -102,6 +102,11 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 								const linkText = view.state.doc.sliceString(from, to);
 								if (isExternalLink && linkText.contains("://")) {
 									const line = view.state.doc.lineAt(from);
+									const before = view.state.doc.sliceString(from - 1, from);
+									if(before !== "(") {
+										targetElements.push({from: from, to: to, value: linkText});
+										return;
+									}
 
 									//scanning for the last occurrence of [ before link, to get the correct position for the icon
 									const toLine = line.to - to;
@@ -110,7 +115,11 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 									if(fromIndex === -1) {
 										return;
 									}
-									const fromTarget = line.from + fromIndex;
+									let fromTarget = line.from + fromIndex;
+									const before2 = view.state.doc.sliceString(fromTarget - 2, fromTarget);
+									if(before2 === "[\\") {
+										fromTarget -= 2;
+									}
 									targetElements.push({from: fromTarget, to: to, value: linkText});
 								}
 							}
