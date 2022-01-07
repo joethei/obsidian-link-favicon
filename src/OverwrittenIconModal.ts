@@ -2,6 +2,8 @@ import FaviconPlugin from "./main";
 import {Modal, Setting} from "obsidian";
 import {OverwrittenFavicon} from "./settings";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
+import {SchemaSuggest} from "./SchemaSuggest";
+
 
 export class OverwrittenIconModal extends Modal {
 	plugin: FaviconPlugin;
@@ -38,6 +40,7 @@ export class OverwrittenIconModal extends Modal {
 	}
 
 	async display() : Promise<void> {
+
 		const { contentEl } = this;
 
 		contentEl.empty();
@@ -45,15 +48,34 @@ export class OverwrittenIconModal extends Modal {
 		//eslint-disable-next-line prefer-const
 		let previewEL: HTMLElement;
 
-		new Setting(contentEl)
-			.setName(this.name)
-			.addText((text) => {
+		const nameSetting = new Setting(contentEl).setName(this.name);
+
+		if(this.name !== "Domain") {
+			let schemas: {schema: string, Description: string}[] = require("../schemas.json");
+			//we don't need http/https to show up, they would not work here
+			schemas = schemas.filter(item => !item.schema.contains("http"));
+			const schemaNames = Object.values(schemas).map(schema => schema.schema);
+			const descriptions = Object.values(schemas).map(schema => {
+				return {name: schema.schema, description: schema.Description}
+			});
+			nameSetting.addSearch(search => {
+				new SchemaSuggest(this.plugin.app, search.inputEl, new Set<string>(schemaNames), new Set<{name: string, description: string}>(descriptions));
+					search.setValue(this.domain)
+					.onChange(value => {
+						this.domain = value;
+					});
+			});
+		}else {
+			nameSetting.addText((text) => {
 				text
 					.setValue(this.domain)
 					.onChange((value) => {
 						this.domain = value;
 					});
 			});
+		}
+
+
 
 		const api = getApi(this.plugin);
 		if (api) {

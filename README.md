@@ -12,6 +12,12 @@ With this plugin you can see the favicon for a linked website without using any 
 
 ![Demo](https://i.joethei.space/Obsidian_Qe0GnS62Md.png)
 
+Works with: [Admonition](https://github.com/valentine195/obsidian-admonition)
+, [RSS Reader](https://github.com/joethei/obsidian-rss) and many more plugins.
+
+Also check out [Link Favicons for Firefox & Chromium based browsers](https://github.com/joethei/browser-favicon-links)
+
+## Icon Providers
 You can select between these providers in the settings:
 
 | Provider                                                           | Max Size  | Fallback                | max requests    |
@@ -23,23 +29,26 @@ You can select between these providers in the settings:
 | [Icon Horse](https://icon.horse/)                                  | none      | automatically generated | fair use policy |
 | [Splitbee](https://github.com/splitbee/favicon-resolver)           | none      | yes (from Google)       | unknown         |
 
-Depending on wich one you choose the icons might look different. The Icon Provider will only receive the hostname of the
-links you specify, so `forum.obsidian.md` instead
+Depending on which provider you choose the icons might look different.
+
+The Icon Provider will only receive the hostname your links, so `forum.obsidian.md` instead
 of `https://forum.obsidian.md/t/custom-link-favicons-hiding-in-community-plugins/24112/5?u=joethei`
-
-Works with: [Admonition](https://github.com/valentine195/obsidian-admonition)
-, [RSS Reader](https://github.com/joethei/obsidian-rss) and many more plugins.
-
-Also check out [Link Favicons for Firefox & Chromium based browsers](https://github.com/joethei/browser-favicon-links)
 
 
 ## Overwriting icons
+> Requires the [Icon Shortcodes](https://github.com/aidenlx/obsidian-icon-shortcodes) plugin
 
-If you want to overwrite some icons with your own,
-you can do so by installing the 
-[Icon Shortcodes](https://github.com/aidenlx/obsidian-icon-shortcodes) plugin.
-You are then able to overwrite icons for domains, as well as define icons for non web links
-with icons from the plugin.
+You can overwrite any domain favicon with an icon of your choosing in the settings.
+(See the demo gif below)
+
+## Defining Icons for URI Schemes
+> Requires the [Icon Shortcodes](https://github.com/aidenlx/obsidian-icon-shortcodes) plugin
+
+You can also add icons for uri schemes such as `mailto://`, `obsidian://` or `calculator://`.
+To do this specify the name of the uri scheme(without `://`) in the settings.
+(See the demo gif below)
+
+![Custom icons demo](https://i.joethei.space/Obsidian_dtVoxv2Xbf.gif)
 
 ### For Designers
 
@@ -72,4 +81,4 @@ As long as you use
 the [renderMarkdown](https://marcus.se.net/obsidian-plugin-docs/api/classes/MarkdownRenderer#rendermarkdown)
 Method this plugin will add favicons to your external links.
 If you want no link favicons in your plugin either add `no-favicon` to your source path when calling the method.
-Or specify the Attribute `data-no-favicon` on your link.
+Or specify the Attribute `data-no-favicon` on your link element.
