@@ -25,7 +25,7 @@ jobs:
                     sudo apt install jq wget python3 --yes
                     wget https://www.iana.org/assignments/uri-schemes/uri-schemes-1.csv
                     cat uri-schemes-1.csv | python -c 'import csv, json, sys; print(json.dumps([dict(r) for r in csv.DictReader(sys.stdin)]))' > test.json
-                    jq 'map(.schema = .["URI Scheme"])' schemas.json  > schemas.json
+                    jq 'map(.schema = .["URI Scheme"])' test.json  > schemas.json
                     npm install -g yarn
                     yarn
                     yarn run build
