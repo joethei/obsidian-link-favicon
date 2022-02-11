@@ -3,6 +3,7 @@ import FaviconPlugin from "./main";
 import {providers} from "./provider";
 import {OverwrittenIconModal} from "./OverwrittenIconModal";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
+import {ProviderTestModal} from "./ProviderTestModal";
 
 export interface OverwrittenFavicon {
 	domain: string,
@@ -101,6 +102,15 @@ export class FaviconSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 		}
+
+		new Setting(containerEl)
+			.setName('Not sure which provider to choose?')
+			.addButton(button =>
+				button.setButtonText("Test Providers")
+					.onClick(() => {
+						new ProviderTestModal(this.plugin).open();
+					})
+			);
 
 
 		new Setting(containerEl)

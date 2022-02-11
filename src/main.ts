@@ -1,4 +1,4 @@
-import {Plugin} from 'obsidian';
+import {Platform, Plugin} from 'obsidian';
 import {DEFAULT_SETTINGS, FaviconPluginSettings, FaviconSettings} from "./settings";
 import {IconProvider, providers} from "./provider";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
@@ -71,8 +71,9 @@ export default class FaviconPlugin extends Plugin {
 		console.log("enabling plugin: link favicons");
 		await this.loadSettings();
 		this.addSettingTab(new FaviconSettings(this.app, this));
-
-		this.registerEditorExtension(Prec.lowest(asyncDecoBuilderExt(this)));
+		if((this.app.vault as any).config?.livePreview) {
+			this.registerEditorExtension(Prec.lowest(asyncDecoBuilderExt(this)));
+		}
 
 		this.registerMarkdownPostProcessor(async (element, ctx) => {
 			if (ctx.sourcePath.contains("no-favicon")) {
