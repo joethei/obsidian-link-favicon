@@ -18,6 +18,8 @@ export interface FaviconPluginSettings {
 	ignored: string;
 	overwritten: OverwrittenFavicon[];
 	protocol: OverwrittenFavicon[];
+	showAliased: boolean;
+	showLink: boolean;
 }
 
 export const DEFAULT_SETTINGS: FaviconPluginSettings = {
@@ -27,7 +29,9 @@ export const DEFAULT_SETTINGS: FaviconPluginSettings = {
 	fallbackProviderDomain: '',
 	ignored: '',
 	overwritten: [],
-	protocol: []
+	protocol: [],
+	showAliased: true,
+	showLink: true,
 }
 
 export class FaviconSettings extends PluginSettingTab {
@@ -48,8 +52,8 @@ export class FaviconSettings extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Icon Provider")
 			.addDropdown((dropdown) => {
-				for(const id in providers) {
-					if(providers.hasOwnProperty(id)) {
+				for (const id in providers) {
+					if (providers.hasOwnProperty(id)) {
 						dropdown.addOption(id, providers[id].name);
 					}
 				}
@@ -77,8 +81,8 @@ export class FaviconSettings extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Fallback Icon Provider")
 			.addDropdown((dropdown) => {
-				for(const id in providers) {
-					if(providers.hasOwnProperty(id)) {
+				for (const id in providers) {
+					if (providers.hasOwnProperty(id)) {
 						dropdown.addOption(id, providers[id].name);
 					}
 				}
@@ -127,7 +131,31 @@ export class FaviconSettings extends PluginSettingTab {
 				}
 			);
 
-		if(isPluginEnabled(this.plugin)) {
+		new Setting(containerEl)
+			.setName('Show icon when link has alias')
+			.setDesc('When link is formatted like: [Obsidian](https://obsidian.md/)')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.showAliased)
+					.onChange(async (value) => {
+						this.plugin.settings.showAliased = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(containerEl)
+			.setName('Show icon when link has no alias')
+			.setDesc('When link is formatted like: https://obsidian.md/')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.showLink)
+					.onChange(async (value) => {
+						this.plugin.settings.showLink = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		if (isPluginEnabled(this.plugin)) {
 			containerEl.createEl("h2", {text: "Custom icons"});
 
 			containerEl.createEl("h3", {text: "for Domains"});
@@ -209,7 +237,6 @@ export class FaviconSettings extends PluginSettingTab {
 
 
 			}
-
 
 
 			containerEl.createEl("h3", {text: "for URI Schemas"});

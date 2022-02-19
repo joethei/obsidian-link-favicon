@@ -1,16 +1,21 @@
-import {Platform, Plugin} from 'obsidian';
+import {Plugin, requireApiVersion} from 'obsidian';
 import {DEFAULT_SETTINGS, FaviconPluginSettings, FaviconSettings} from "./settings";
 import {IconProvider, providers} from "./provider";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
 import {Prec} from "@codemirror/state";
-import {asyncDecoBuilderExt} from "./Decorations";
+import FastAverageColor from "fast-average-color";
+import tinycolor from "tinycolor2";
 
 export default class FaviconPlugin extends Plugin {
 	settings: FaviconPluginSettings;
 
+	fac = new FastAverageColor();
+
 	isDisabled(el: Element) {
 		if (el.getAttribute("data-no-favicon")) return true;
 		if (el.getAttribute("data-favicon")) return true;
+		if (!this.settings.showLink && el.textContent === el.getAttribute("href")) return true;
+		if (!this.settings.showAliased && el.textContent !== el.getAttribute("href")) return true;
 	}
 
 
@@ -67,11 +72,55 @@ export default class FaviconPlugin extends Plugin {
 		return provider.url(domain.hostname, this.settings);
 	}
 
+	async downloadIconToBlob(icon: string): Promise<string> {
+		//@ts-ignore
+		const buffer = await requestUrl({url: icon});
+		const arrayBuffer = buffer.arrayBuffer;
+		const arrayBufferView = new Uint8Array(arrayBuffer);
+		const blob = new Blob([arrayBufferView], {type: "image/png"});
+		return await this.blobToBase64(blob);
+	}
+
+	async setColorAttributes(img: HTMLImageElement) {
+		const darkEl = document.getElementsByClassName("theme-dark")[0];
+		const lightEl = document.getElementsByClassName("theme-light")[0];
+
+		//@ts-ignore
+		const isDarkMode = app.getTheme() === "obsidian";
+		let background: string;
+
+		if (isDarkMode) {
+			const style = window.getComputedStyle(darkEl);
+			background = style.getPropertyValue('--background-primary');
+		} else {
+			const style = window.getComputedStyle(lightEl);
+			background = style.getPropertyValue('--background-primary');
+		}
+
+		this.fac.getColorAsync(img).then(color => {
+			img.dataset.averageColorRgb = color.rgb;
+			img.dataset.averageColorRgba = color.rgba;
+			img.dataset.averageColorHex = color.hex;
+			img.dataset.averageColorHexa = color.hexa;
+			img.dataset.isDark = String(color.isDark);
+			img.dataset.isLight = String(color.isLight);
+			const backgroundColor = tinycolor(background);
+			img.dataset.readable = tinycolor.readability(color.hex, backgroundColor).toString();
+			img.dataset.isReadableAA = String(tinycolor.isReadable(color.hex, backgroundColor));
+			img.dataset.isReadableAAA = String(tinycolor.isReadable(color.hex, backgroundColor, {level: "AAA"}));
+		}).catch(e => {
+			console.error(e);
+		});
+	}
+
 	async onload() {
 		console.log("enabling plugin: link favicons");
 		await this.loadSettings();
 		this.addSettingTab(new FaviconSettings(this.app, this));
-		if((this.app.vault as any).config?.livePreview) {
+		//eslint-disable-next-line @typescript-eslint/no-explicit-any
+		if ((this.app.vault as any).config?.livePreview) {
+			//eslint-disable-next-line @typescript-eslint/no-var-requires
+			const asyncDecoBuilderExt = require('./Decorations').asyncDecoBuilderExt;
 			this.registerEditorExtension(Prec.lowest(asyncDecoBuilderExt(this)));
 		}
 
@@ -123,24 +172,25 @@ export default class FaviconPlugin extends Plugin {
 							el = document.createElement("object");
 							el.addClass("link-favicon");
 							el.dataset.host = domain.hostname;
-							el.data = icon;
 
-							/*if (typeof el !== "string") {
-								const tmpImg = document.createElement("img");
-								tmpImg.crossOrigin = 'anonymous';
-								tmpImg.src = icon;
-								fac.getColorAsync(tmpImg).then(color => {
-									console.log(color.hex);
-									if (typeof el !== "string") {
-										el.dataset.averageColor = color.rgb;
+							if (!requireApiVersion("0.13.25")) {
+								el.data = icon;
+							} else {
+								const blob = await this.downloadIconToBlob(icon);
+								el.data = blob;
+
+
+								if (typeof el !== "string") {
+									const tmpImg = document.createElement("img");
+									tmpImg.crossOrigin = 'anonymous';
+									tmpImg.src = blob;
+
+									await this.setColorAttributes(tmpImg);
+									for (const data of Object.keys(tmpImg.dataset)) {
+										el.dataset[data] = tmpImg.dataset[data];
 									}
-									link.append(tmpImg);
-								}).catch(e => {
-									console.error(e);
-								}).finally(() => {
-									tmpImg.remove();
-								});
-							}*/
+								}
+							}
 
 							//only png and icon are ever used by any provider
 							el.data.contains(".ico") ? el.type = "image/x-icon" : el.type = "image/png";
@@ -159,14 +209,15 @@ export default class FaviconPlugin extends Plugin {
 
 					if (typeof el !== "string" && typeof fallbackIcon === "string") {
 						const img = el.createEl("img");
-						//img.crossOrigin = "anonymous";
-						img.src = fallbackIcon;
 						img.addClass("link-favicon");
-						/*fac.getColorAsync(img).then(color => {
-							img.dataset.averageColor = color.hex;
-						}).catch(e => {
-							console.error(e);
-						});*/
+
+						if (!requireApiVersion("0.13.25")) {
+							img.src = fallbackIcon;
+						}else {
+							img.src = await this.downloadIconToBlob(fallbackIcon);
+							await this.setColorAttributes(img);
+						}
+
 						img.style.height = "0.8em";
 						img.style.display = "block";
 
@@ -181,8 +232,32 @@ export default class FaviconPlugin extends Plugin {
 		});
 	}
 
+	blobToBase64(blob: Blob): Promise<string> {
+		return new Promise((resolve, _) => {
+			const reader = new FileReader();
+			reader.onloadend = () => resolve(reader.result as string);
+			reader.readAsDataURL(blob);
+		});
+	}
+
+	findOpenParen(text: string, closePos: number): number {
+		if(!text.includes("[")) return 0;
+		let openPos = closePos;
+		let counter = 1;
+		while (counter > 0) {
+			const c = text[--openPos];
+			if(c === undefined) break;
+			if (c == '[') {
+				counter--;
+			} else if (c == ']') {
+				counter++;
+			}
+		}
+		return openPos;
+	}
+
 	onunload() {
-		//fac.destroy();
+		this.fac.destroy();
 		console.log("disabling plugin: link favicons");
 	}
 

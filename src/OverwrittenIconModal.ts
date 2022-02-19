@@ -51,6 +51,7 @@ export class OverwrittenIconModal extends Modal {
 		const nameSetting = new Setting(contentEl).setName(this.name);
 
 		if(this.name !== "Domain") {
+			//eslint-disable-next-line @typescript-eslint/no-var-requires
 			let schemas: {schema: string, Description: string}[] = require("../schemas.json");
 			//we don't need http/https to show up, they would not work here
 			schemas = schemas.filter(item => !item.schema.contains("http"));

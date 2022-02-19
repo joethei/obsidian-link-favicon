@@ -16,3 +16,7 @@
 .link-favicon-preview img{
 	height: 50px;
 }
+
+.link-favicon[data-is-readable-a-a="false"] {
+	filter: hue-rotate(180deg) invert(1.0);
+}

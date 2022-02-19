@@ -1,9 +1,9 @@
-import { debounce } from "obsidian";
-import { EditorView, Decoration, DecorationSet, ViewUpdate, ViewPlugin, WidgetType } from "@codemirror/view";
-import { StateField, StateEffect, StateEffectType } from "@codemirror/state";
-import { Range } from "@codemirror/rangeset";
-import { syntaxTree } from "@codemirror/language";
-import { tokenClassNodeProp } from "@codemirror/stream-parser";
+import {debounce, requireApiVersion} from "obsidian";
+import {Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType} from "@codemirror/view";
+import {StateEffect, StateEffectType, StateField} from "@codemirror/state";
+import {Range} from "@codemirror/rangeset";
+import {syntaxTree} from "@codemirror/language";
+import {tokenClassNodeProp} from "@codemirror/stream-parser";
 import FaviconPlugin from "./main";
 import {providers} from "./provider";
 
@@ -104,22 +104,23 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 									const line = view.state.doc.lineAt(from);
 									const before = view.state.doc.sliceString(from - 1, from);
 									if(before !== "(") {
+										if(!plugin.settings.showLink) return;
 										targetElements.push({from: from, to: to, value: linkText});
 										return;
 									}
 
-									//scanning for the last occurrence of [ before link, to get the correct position for the icon
+									if(!plugin.settings.showAliased) return;
+
+									//scanning for the matching opening bracket of the alias, to get the correct position for the icon
 									const toLine = line.to - to;
 									const toLineT = line.length - toLine;
-									const fromIndex = line.text.lastIndexOf("[", toLineT);
-									if(fromIndex === -1) {
+									const lastIndex = line.text.lastIndexOf("]", toLineT);
+									const open = plugin.findOpenParen(line.text, lastIndex);
+									if(open === -1) {
 										return;
 									}
-									let fromTarget = line.from + fromIndex;
-									const before2 = view.state.doc.sliceString(fromTarget - 2, fromTarget);
-									if(before2 === "[\\") {
-										fromTarget -= 2;
-									}
+									const fromTarget = line.from + open;
+
 									targetElements.push({from: fromTarget, to: to, value: linkText});
 								}
 							}
@@ -194,7 +195,25 @@ class IconWidget extends WidgetType {
 			const el = document.createElement("object");
 			el.addClass("link-favicon");
 			el.dataset.host = this.domain;
-			el.data = this.icon;
+
+			if (!requireApiVersion("0.13.25")) {
+				el.data = this.icon;
+			}else {
+				this.plugin.downloadIconToBlob(this.icon).then(value => {
+					el.data = value;
+
+					const tmpImg = document.createElement("img");
+					tmpImg.crossOrigin = 'anonymous';
+					tmpImg.src = value;
+
+					this.plugin.setColorAttributes(tmpImg).then(() => {
+						for(const data of Object.keys(tmpImg.dataset)) {
+							el.dataset[data] = tmpImg.dataset[data];
+						}
+					});
+				});
+			}
+
 			//only png and icon are ever used by any provider
 			el.data.contains(".ico") ? el.type = "image/x-icon" : el.type = "image/png";
 
@@ -205,7 +224,16 @@ class IconWidget extends WidgetType {
 
 			if(typeof this.fallbackIcon === "string") {
 				const img = el.createEl("img");
-				img.src = this.fallbackIcon;
+
+				if (!requireApiVersion("0.13.25")) {
+					img.src = this.fallbackIcon;
+				}else {
+					this.plugin.downloadIconToBlob(this.fallbackIcon).then(value => {
+						img.src = value;
+						this.plugin.setColorAttributes(img);
+					});
+				}
+
 				img.addClass("link-favicon");
 				img.style.height = "0.8em";
 				img.style.display = "block";
@@ -218,7 +246,6 @@ class IconWidget extends WidgetType {
 		}else {
 			return this.icon;
 		}
-
 
 	}
 
