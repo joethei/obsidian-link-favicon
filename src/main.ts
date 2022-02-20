@@ -112,12 +112,16 @@ export default class FaviconPlugin extends Plugin {
 		});
 	}
 
+	isLivePreviewSupported() : boolean {
+		//eslint-disable-next-line @typescript-eslint/no-explicit-any
+		return !(this.app.vault as any).config?.legacyEditor;
+	}
+
 	async onload() {
 		console.log("enabling plugin: link favicons");
 		await this.loadSettings();
 		this.addSettingTab(new FaviconSettings(this.app, this));
-		//eslint-disable-next-line @typescript-eslint/no-explicit-any
-		if ((this.app.vault as any).config?.livePreview) {
+		if (this.isLivePreviewSupported()) {
 			console.log("live preview supported");
 			//eslint-disable-next-line @typescript-eslint/no-var-requires
 			const asyncDecoBuilderExt = require('./Decorations').asyncDecoBuilderExt;
