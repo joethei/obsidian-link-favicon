@@ -1,6 +1,6 @@
 {
 	"name": "link-favicon",
-	"version": "1.6.0",
+	"version": "1.6.1",
 	"description": "See the favicon for a linked website. ",
 	"main": "src/main.js",
 	"scripts": {
