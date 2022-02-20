@@ -20,3 +20,8 @@
 .link-favicon[data-is-readable-a-a="false"] {
 	filter: hue-rotate(180deg) invert(1.0);
 }
+
+.link-favicon-scrollable-content {
+	overflow: auto;
+	height: 60vh;
+}

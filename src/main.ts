@@ -114,7 +114,12 @@ export default class FaviconPlugin extends Plugin {
 
 	isLivePreviewSupported() : boolean {
 		//eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return !(this.app.vault as any).config?.legacyEditor;
+		const config = (this.app.vault as any).config;
+		if(config.legacyEditor === undefined) return false;
+		if(config.legacyEditor) return false;
+		if(typeof requireApiVersion !== "function") return false;
+		if(!requireApiVersion("0.13.0")) return false;
+		return true;
 	}
 
 	async onload() {
@@ -179,7 +184,7 @@ export default class FaviconPlugin extends Plugin {
 							el.addClass("link-favicon");
 							el.dataset.host = domain.hostname;
 
-							if (!requireApiVersion("0.13.25")) {
+							if (!this.isLivePreviewSupported() && ( typeof requireApiVersion !== "function" || !requireApiVersion("0.13.25"))) {
 								el.data = icon;
 							} else {
 								const blob = await this.downloadIconToBlob(icon);
@@ -217,7 +222,7 @@ export default class FaviconPlugin extends Plugin {
 						const img = el.createEl("img");
 						img.addClass("link-favicon");
 
-						if (!requireApiVersion("0.13.25")) {
+						if (!this.isLivePreviewSupported() && ( typeof requireApiVersion !== "function" || !requireApiVersion("0.13.25"))) {
 							img.src = fallbackIcon;
 						}else {
 							img.src = await this.downloadIconToBlob(fallbackIcon);

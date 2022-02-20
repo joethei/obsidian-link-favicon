@@ -12,10 +12,9 @@ export class ProviderTestModal extends Modal {
 	}
 
 	async display(): Promise<void> {
-
 		const {contentEl} = this;
-
 		contentEl.empty();
+		contentEl.addClass("link-favicon-scrollable-content");
 
 		new Setting(contentEl).setName("Link").addText(text => {
 			text

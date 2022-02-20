@@ -131,6 +131,8 @@ export class FaviconSettings extends PluginSettingTab {
 				}
 			);
 
+		containerEl.createEl("h2", {text: "Design"});
+
 		new Setting(containerEl)
 			.setName('Show icon when link has alias')
 			.setDesc('When link is formatted like: [Obsidian](https://obsidian.md/)')
