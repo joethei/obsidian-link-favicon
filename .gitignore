@@ -21,3 +21,4 @@ data.json
 test.json
 schemas.json
 *.csv
+*.lock

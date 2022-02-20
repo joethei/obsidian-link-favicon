@@ -43,6 +43,7 @@ class StatefulDecorationSet {
 				}catch (e) {
 					console.error("Invalid url: " + token.value);
 					console.error(e);
+					continue;
 				}
 
 				const icon = await this.plugin.getIcon(url, provider);
@@ -99,7 +100,8 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 								// @ts-ignore
 								const props = new Set(tokenProps.split(" "));
 								const isExternalLink = props.has("url");
-								const linkText = view.state.doc.sliceString(from, to);
+								let linkText = view.state.doc.sliceString(from, to);
+								linkText = linkText.replace(/[<>]/g, '');
 								if (isExternalLink && linkText.contains("://")) {
 									const line = view.state.doc.lineAt(from);
 									const before = view.state.doc.sliceString(from - 1, from);

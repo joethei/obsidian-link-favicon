@@ -2,7 +2,6 @@ import {Plugin, requireApiVersion} from 'obsidian';
 import {DEFAULT_SETTINGS, FaviconPluginSettings, FaviconSettings} from "./settings";
 import {IconProvider, providers} from "./provider";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
-import {Prec} from "@codemirror/state";
 import FastAverageColor from "fast-average-color";
 import tinycolor from "tinycolor2";
 
@@ -119,8 +118,11 @@ export default class FaviconPlugin extends Plugin {
 		this.addSettingTab(new FaviconSettings(this.app, this));
 		//eslint-disable-next-line @typescript-eslint/no-explicit-any
 		if ((this.app.vault as any).config?.livePreview) {
+			console.log("live preview supported");
 			//eslint-disable-next-line @typescript-eslint/no-var-requires
 			const asyncDecoBuilderExt = require('./Decorations').asyncDecoBuilderExt;
+			//eslint-disable-next-line @typescript-eslint/no-var-requires
+			const Prec = require("@codemirror/state").Prec;
 			this.registerEditorExtension(Prec.lowest(asyncDecoBuilderExt(this)));
 		}
 
