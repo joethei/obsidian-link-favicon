@@ -24,6 +24,7 @@ export interface FaviconPluginSettings {
 	enableSource: boolean,
 	enableLivePreview: boolean,
 	cacheTime: number,
+	debounce: number,
 }
 
 export const DEFAULT_SETTINGS: FaviconPluginSettings = {
@@ -40,6 +41,7 @@ export const DEFAULT_SETTINGS: FaviconPluginSettings = {
 	enableSource: true,
 	enableLivePreview: true,
 	cacheTime: 6,
+	debounce: 500,
 }
 
 export class FaviconSettings extends PluginSettingTab {
@@ -376,6 +378,25 @@ export class FaviconSettings extends PluginSettingTab {
 
 
 			}
+
+			const details = containerEl.createEl("details");
+			const summary = details.createEl("summary");
+			summary.setText("Advanced");
+			const advanced = details.createDiv("advanced");
+
+			new Setting(advanced)
+				.setName('Debounce')
+				.setDesc('How fast after editing a link should a icon be displayed(in milliseconds)?')
+				.addSlider(slider => {
+					slider
+						.setLimits(1, 2500, 1)
+						.setDynamicTooltip()
+						.setValue(this.plugin.settings.debounce)
+						.onChange(async (value) => {
+							this.plugin.settings.debounce = value;
+							await this.plugin.saveSettings();
+						});
+				});
 		}
 	}
 }

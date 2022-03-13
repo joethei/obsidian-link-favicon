@@ -1,4 +1,4 @@
-import {debounce, requireApiVersion} from "obsidian";
+import {debounce, Debouncer, requireApiVersion} from "obsidian";
 import {Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType} from "@codemirror/view";
 import {StateEffect, StateEffectType, StateField} from "@codemirror/state";
 import {Range} from "@codemirror/rangeset";
@@ -21,10 +21,12 @@ class StatefulDecorationSet {
 	editor: EditorView;
 	plugin: FaviconPlugin;
 	decoCache: { [cls: string]: Decoration } = Object.create(null);
+	debouncedUpdate: Debouncer<any>;
 
 	constructor(editor: EditorView, plugin: FaviconPlugin) {
 		this.editor = editor;
 		this.plugin = plugin;
+		this.debouncedUpdate = debounce(this.updateAsyncDecorations, this.plugin.settings.debounce, true);
 	}
 
 	async computeAsyncDecorations(tokens: TokenSpec[]): Promise<DecorationSet | null> {
@@ -57,8 +59,6 @@ class StatefulDecorationSet {
 		}
 		return Decoration.set(decorations, true);
 	}
-
-	debouncedUpdate = debounce(this.updateAsyncDecorations, 1000, true);
 
 	async updateAsyncDecorations(tokens: TokenSpec[]): Promise<void> {
 		const decorations = await this.computeAsyncDecorations(tokens);
