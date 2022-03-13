@@ -12,7 +12,7 @@ export const providers: Record<string, IconProvider> = {
 	'iconhorse': {name: 'Icon Horse', url: domain => Promise.resolve("https://icon.horse/icon/" + domain)},
 	'splitbee': {name: 'Splitbee', url: domain => Promise.resolve("https://favicon.splitbee.io/?url=" + domain)},
 	'besticon': {name: 'The Favicon Finder', url: (domain, settings) => {
-		const host = settings.provider === "besticon" ? settings.providerDomain : settings.fallbackProviderDomain
+		const host = settings.provider === "besticon" ? settings.providerDomain : settings.fallbackProviderDomain;
 		return Promise.resolve(host + "/icon?url=" + domain + "&size=32..64..256");
 	}},
 	'favicongrabber': {name: 'Favicon Grabber', url: (async (domain) => {

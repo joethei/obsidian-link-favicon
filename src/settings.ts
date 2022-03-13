@@ -20,6 +20,10 @@ export interface FaviconPluginSettings {
 	protocol: OverwrittenFavicon[];
 	showAliased: boolean;
 	showLink: boolean;
+	enableReading: boolean,
+	enableSource: boolean,
+	enableLivePreview: boolean,
+	cacheTime: number,
 }
 
 export const DEFAULT_SETTINGS: FaviconPluginSettings = {
@@ -32,6 +36,10 @@ export const DEFAULT_SETTINGS: FaviconPluginSettings = {
 	protocol: [],
 	showAliased: true,
 	showLink: true,
+	enableReading: true,
+	enableSource: true,
+	enableLivePreview: true,
+	cacheTime: 6,
 }
 
 export class FaviconSettings extends PluginSettingTab {
@@ -131,6 +139,20 @@ export class FaviconSettings extends PluginSettingTab {
 				}
 			);
 
+		new Setting(containerEl)
+			.setName('Cache icons for X months')
+			.setDesc('')
+			.addSlider(slider => {
+				slider
+					.setLimits(1, 24, 1)
+					.setDynamicTooltip()
+					.setValue(this.plugin.settings.cacheTime)
+					.onChange(async (value) => {
+						this.plugin.settings.cacheTime = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
 		containerEl.createEl("h2", {text: "Design"});
 
 		new Setting(containerEl)
@@ -153,6 +175,41 @@ export class FaviconSettings extends PluginSettingTab {
 					.setValue(this.plugin.settings.showLink)
 					.onChange(async (value) => {
 						this.plugin.settings.showLink = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		containerEl.createEl("hr");
+
+		new Setting(containerEl)
+			.setName('Show in Reading mode')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.enableReading)
+					.onChange(async (value) => {
+						this.plugin.settings.enableReading = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(containerEl)
+			.setName('Show in Source mode')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.enableSource)
+					.onChange(async (value) => {
+						this.plugin.settings.enableSource = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(containerEl)
+			.setName('Show in live preview')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.enableLivePreview)
+					.onChange(async (value) => {
+						this.plugin.settings.enableLivePreview = value;
 						await this.plugin.saveSettings();
 					});
 			});

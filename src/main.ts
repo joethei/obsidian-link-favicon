@@ -1,4 +1,4 @@
-import {Plugin, requireApiVersion} from 'obsidian';
+import {Plugin, requestUrl, requireApiVersion} from 'obsidian';
 import {DEFAULT_SETTINGS, FaviconPluginSettings, FaviconSettings} from "./settings";
 import {IconProvider, providers} from "./provider";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
@@ -47,7 +47,8 @@ export default class FaviconPlugin extends Plugin {
 			if (customSchemeIcon) {
 				if (typeof customSchemeIcon !== "string") {
 					customSchemeIcon.addClass("link-favicon");
-					customSchemeIcon.dataset.host = domain.hostname;
+					customSchemeIcon.dataset.target = domain.href;
+					customSchemeIcon.dataset.protocol = domain.protocol;
 				}
 				return customSchemeIcon;
 			}
@@ -63,6 +64,7 @@ export default class FaviconPlugin extends Plugin {
 		if (customDomainIcon) {
 			if (typeof customDomainIcon !== "string") {
 				customDomainIcon.addClass("link-favicon");
+				customDomainIcon.dataset.target = domain.href;
 				customDomainIcon.dataset.host = domain.hostname;
 			}
 			return customDomainIcon;
@@ -71,12 +73,44 @@ export default class FaviconPlugin extends Plugin {
 		return provider.url(domain.hostname, this.settings);
 	}
 
-	async downloadIconToBlob(icon: string): Promise<string> {
-		//@ts-ignore
+	async downloadIcon(icon: string, targetPath: string): Promise<ArrayBuffer> {
 		const buffer = await requestUrl({url: icon});
 		const arrayBuffer = buffer.arrayBuffer;
+		await this.app.vault.createBinary(targetPath, arrayBuffer);
+		return arrayBuffer;
+	}
+
+	async downloadIconToBlob(icon: string, hostname: string): Promise<string> {
+		const parts = icon.split(".");
+		let extension = parts[parts.length - 1];
+		if (extension !== "ico" && extension !== "png") {
+			extension = "png";
+		}
+
+		const dir = this.manifest.dir + "/cache/";
+		if (!await this.app.vault.adapter.exists(dir)) {
+			await this.app.vault.adapter.mkdir(dir);
+		}
+		const filepath = dir + hostname + "." + extension;
+
+		let arrayBuffer: ArrayBuffer;
+		if (!await this.app.vault.adapter.exists(filepath)) {
+			arrayBuffer = await this.downloadIcon(icon, filepath);
+		} else {
+			const stat = await this.app.vault.adapter.stat(filepath);
+			const diff = Date.now() - stat.ctime;
+			const time = this.settings.cacheTime * 30 * 24 * 60 * 1000;
+			if (diff > time) {
+				await this.app.vault.adapter.remove(filepath);
+				arrayBuffer = await this.downloadIcon(icon, filepath);
+			} else {
+				arrayBuffer = await this.app.vault.adapter.readBinary(filepath);
+			}
+		}
+
 		const arrayBufferView = new Uint8Array(arrayBuffer);
 		const blob = new Blob([arrayBufferView], {type: "image/png"});
+
 		return await this.blobToBase64(blob);
 	}
 
@@ -112,22 +146,21 @@ export default class FaviconPlugin extends Plugin {
 		});
 	}
 
-	isLivePreviewSupported() : boolean {
+	/**
+	 * @returns true if Live Preview is supported
+	 */
+	isUsingLivePreviewEnabledEditor(): boolean {
 		//eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const config = (this.app.vault as any).config;
-		if(config.legacyEditor === undefined) return false;
-		if(config.legacyEditor) return false;
-		if(typeof requireApiVersion !== "function") return false;
-		if(!requireApiVersion("0.13.0")) return false;
-		return true;
+		if (config.legacyEditor === undefined) return false;
+		return !config.legacyEditor;
 	}
 
 	async onload() {
 		console.log("enabling plugin: link favicons");
 		await this.loadSettings();
 		this.addSettingTab(new FaviconSettings(this.app, this));
-		if (this.isLivePreviewSupported()) {
-			console.log("live preview supported");
+		if (this.isUsingLivePreviewEnabledEditor()) {
 			//eslint-disable-next-line @typescript-eslint/no-var-requires
 			const asyncDecoBuilderExt = require('./Decorations').asyncDecoBuilderExt;
 			//eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -136,6 +169,10 @@ export default class FaviconPlugin extends Plugin {
 		}
 
 		this.registerMarkdownPostProcessor(async (element, ctx) => {
+			if (!this.settings.enableReading) {
+				return;
+			}
+
 			if (ctx.sourcePath.contains("no-favicon")) {
 				return;
 			}
@@ -148,98 +185,101 @@ export default class FaviconPlugin extends Plugin {
 				return;
 			}
 
-			const links = element.querySelectorAll("a.external-link:not([data-favicon])");
-			for (let index = 0; index < links.length; index++) {
-				const link = links.item(index) as HTMLAnchorElement;
-				if (!this.isDisabled(link)) {
-					link.dataset.favicon = "true";
+			//delay rendering in Preview, to allow other plugins to finish their stuff(like dataview for issue #13)
+			const timeout = 500;
+			setTimeout(async () => {
+				const links = element.querySelectorAll("a.external-link:not([data-favicon])");
+				for (let index = 0; index < links.length; index++) {
+					const link = links.item(index) as HTMLAnchorElement;
+					if (!this.isDisabled(link)) {
+						link.dataset.favicon = "true";
 
-					let domain;
+						let domain;
 
-					try {
-						domain = new URL(link.href);
-					} catch (e) {
-						console.error("Invalid url: " + link.href);
-						console.error(e);
-					}
+						try {
+							domain = new URL(link.href);
+						} catch (e) {
+							console.error("Invalid url: " + link.href);
+							console.error(e);
+							continue;
+						}
 
-					if (!domain) continue;
+						const icon = await this.getIcon(domain, provider);
+						const fallbackIcon = await this.getIcon(domain, fallbackProvider);
 
-					const icon = await this.getIcon(domain, provider);
-					const fallbackIcon = await this.getIcon(domain, fallbackProvider);
+						let el: string | HTMLObjectElement | HTMLImageElement;
 
-					let el: string | HTMLObjectElement | HTMLImageElement;
+						if (!icon || icon === "") {
+							console.log("no icon for " + domain.href);
+							continue;
+						}
 
-					if (!icon || icon === "") {
-						console.log("no icon for " + domain.href);
-						continue;
-					}
-
-					if (typeof icon === "string") {
-						if (!icon.startsWith("http")) {
-							el = icon;
-						} else {
-							//html only image fallback taken from: https://dev.to/albertodeago88/html-only-image-fallback-19im
-							el = document.createElement("object");
-							el.addClass("link-favicon");
-							el.dataset.host = domain.hostname;
-
-							if (!this.isLivePreviewSupported() && ( typeof requireApiVersion !== "function" || !requireApiVersion("0.13.25"))) {
-								el.data = icon;
+						if (typeof icon === "string") {
+							if (!icon.startsWith("http")) {
+								el = icon;
 							} else {
-								const blob = await this.downloadIconToBlob(icon);
-								el.data = blob;
+								//html only image fallback taken from: https://dev.to/albertodeago88/html-only-image-fallback-19im
+								el = document.createElement("object");
+								el.addClass("link-favicon");
+								el.dataset.host = domain.hostname;
 
 
-								if (typeof el !== "string") {
-									const tmpImg = document.createElement("img");
-									tmpImg.crossOrigin = 'anonymous';
-									tmpImg.src = blob;
+								if (typeof requireApiVersion !== "function" || !requireApiVersion("0.13.25")) {
+									el.data = icon;
+								} else {
+									const blob = await this.downloadIconToBlob(icon, domain.hostname);
+									el.data = blob;
 
-									await this.setColorAttributes(tmpImg);
-									for (const data of Object.keys(tmpImg.dataset)) {
-										el.dataset[data] = tmpImg.dataset[data];
+									if (typeof el !== "string") {
+										const tmpImg = document.createElement("img");
+										tmpImg.src = blob;
+
+										await this.setColorAttributes(tmpImg);
+										for (const data of Object.keys(tmpImg.dataset)) {
+											el.dataset[data] = tmpImg.dataset[data];
+										}
 									}
 								}
+
+
+								//only png and icon are ever used by any provider
+								el.data.contains(".ico") ? el.type = "image/x-icon" : el.type = "image/png";
+
+								//making sure these styles will not be overwritten by any other theme/plugin
+								//i.e. page preview sets height: auto, which creates huge icons.
+								el.style.height = "0.8em";
+								el.style.display = "inline-block";
 							}
 
-							//only png and icon are ever used by any provider
-							el.data.contains(".ico") ? el.type = "image/x-icon" : el.type = "image/png";
-
-							//making sure these styles will not be overwritten by any other theme/plugin
-							//i.e. page preview sets height: auto, which creates huge icons.
-							el.style.height = "0.8em";
-							el.style.display = "inline-block";
+						} else {
+							el = icon;
 						}
 
-					} else {
-						el = icon;
-					}
+						if (!el) continue;
 
-					if (!el) continue;
+						if (typeof el !== "string" && typeof fallbackIcon === "string") {
+							const img = el.createEl("img");
+							img.addClass("link-favicon");
 
-					if (typeof el !== "string" && typeof fallbackIcon === "string") {
-						const img = el.createEl("img");
-						img.addClass("link-favicon");
+							if (typeof requireApiVersion !== "function" || !requireApiVersion("0.13.25")) {
+								img.src = fallbackIcon;
+							} else {
+								img.src = await this.downloadIconToBlob(fallbackIcon, domain.hostname);
+								await this.setColorAttributes(img);
+							}
 
-						if (!this.isLivePreviewSupported() && ( typeof requireApiVersion !== "function" || !requireApiVersion("0.13.25"))) {
-							img.src = fallbackIcon;
-						}else {
-							img.src = await this.downloadIconToBlob(fallbackIcon);
-							await this.setColorAttributes(img);
+							img.style.height = "0.8em";
+							img.style.display = "block";
+
+							el.append(img);
 						}
 
-						img.style.height = "0.8em";
-						img.style.display = "block";
-
-						el.append(img);
-					}
-
-					if (el) {
-						link.prepend(el);
+						if (el) {
+							link.prepend(el);
+						}
 					}
 				}
-			}
+			}, timeout);
 		});
 	}
 
@@ -252,12 +292,12 @@ export default class FaviconPlugin extends Plugin {
 	}
 
 	findOpenParen(text: string, closePos: number): number {
-		if(!text.includes("[")) return 0;
+		if (!text.includes("[")) return 0;
 		let openPos = closePos;
 		let counter = 1;
 		while (counter > 0) {
 			const c = text[--openPos];
-			if(c === undefined) break;
+			if (c === undefined) break;
 			if (c == '[') {
 				counter--;
 			} else if (c == ']') {

@@ -50,14 +50,15 @@ class StatefulDecorationSet {
 				const fallbackIcon = await this.plugin.getIcon(url, fallbackProvider);
 				const domain = url.protocol.contains("http") ? url.hostname : url.protocol;
 
-				deco = this.decoCache[token.value] = Decoration.widget({ widget: new IconWidget(this.plugin, icon, fallbackIcon, domain) });
+				//making the decoration value unique
+				deco = this.decoCache[token.value + token.from + token.to] = Decoration.widget({ widget: new IconWidget(this.plugin, icon, fallbackIcon, domain) });
 			}
 			decorations.push(deco.range(token.from, token.from));
 		}
 		return Decoration.set(decorations, true);
 	}
 
-	debouncedUpdate = debounce(this.updateAsyncDecorations, 100, true);
+	debouncedUpdate = debounce(this.updateAsyncDecorations, 1000, true);
 
 	async updateAsyncDecorations(tokens: TokenSpec[]): Promise<void> {
 		const decorations = await this.computeAsyncDecorations(tokens);
@@ -88,6 +89,14 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 			}
 
 			buildAsyncDecorations(view: EditorView) {
+				const isLivePreview = view.dom.parentElement.classList.contains("is-live-preview");
+				if(isLivePreview && !plugin.settings.enableLivePreview) {
+					return;
+				}
+				if(!isLivePreview && !plugin.settings.enableSource) {
+					return;
+				}
+
 				const targetElements: TokenSpec[] = [];
 				for (const {from, to} of view.visibleRanges) {
 					const tree = syntaxTree(view.state);
@@ -97,12 +106,11 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 						enter: (type, from, to) => {
 							const tokenProps = type.prop(tokenClassNodeProp);
 							if (tokenProps) {
-								// @ts-ignore
 								const props = new Set(tokenProps.split(" "));
 								const isExternalLink = props.has("url");
 								let linkText = view.state.doc.sliceString(from, to);
 								linkText = linkText.replace(/[<>]/g, '');
-								if (isExternalLink && linkText.contains("://")) {
+								if (isExternalLink && linkText.contains(":")) {
 									const line = view.state.doc.lineAt(from);
 									const before = view.state.doc.sliceString(from - 1, from);
 									if(before !== "(") {
@@ -146,10 +154,7 @@ export function asyncDecoBuilderExt(plugin: FaviconPlugin) {
 // Generic helper for creating pairs of editor state fields and
 // effects to model imperatively updated decorations.
 // source: https://github.com/ChromeDevTools/devtools-frontend/blob/8f098d33cda3dd94b53e9506cd3883d0dccc339e/front_end/panels/sources/DebuggerPlugin.ts#L1722
-function defineStatefulDecoration(): {
-	update: StateEffectType<DecorationSet>;
-	field: StateField<DecorationSet>;
-} {
+function defineStatefulDecoration(): { update: StateEffectType<DecorationSet>; field: StateField<DecorationSet>; } {
 	const update = StateEffect.define<DecorationSet>();
 	const field = StateField.define<DecorationSet>({
 		create(): DecorationSet {
@@ -168,6 +173,7 @@ class IconWidget extends WidgetType {
 	icon: string | HTMLImageElement;
 	fallbackIcon: string | HTMLImageElement;
 	plugin: FaviconPlugin;
+
 	constructor(plugin: FaviconPlugin, icon: string | HTMLImageElement, fallbackIcon: string | HTMLImageElement, domain: string) {
 		super();
 		this.plugin = plugin;
@@ -177,7 +183,7 @@ class IconWidget extends WidgetType {
 	}
 
 	eq(other: IconWidget) {
-		return other == this;
+		return other === this;
 	}
 
 	toDOM() {
@@ -198,10 +204,10 @@ class IconWidget extends WidgetType {
 			el.addClass("link-favicon");
 			el.dataset.host = this.domain;
 
-			if (!requireApiVersion("0.13.25")) {
+			if (typeof requireApiVersion !== "function" || !requireApiVersion("0.13.25")) {
 				el.data = this.icon;
 			}else {
-				this.plugin.downloadIconToBlob(this.icon).then(value => {
+				this.plugin.downloadIconToBlob(this.icon, this.domain).then(value => {
 					el.data = value;
 
 					const tmpImg = document.createElement("img");
@@ -226,11 +232,10 @@ class IconWidget extends WidgetType {
 
 			if(typeof this.fallbackIcon === "string") {
 				const img = el.createEl("img");
-
-				if (!requireApiVersion("0.13.25")) {
+				if (typeof requireApiVersion !== "function" || !requireApiVersion("0.13.25")) {
 					img.src = this.fallbackIcon;
 				}else {
-					this.plugin.downloadIconToBlob(this.fallbackIcon).then(value => {
+					this.plugin.downloadIconToBlob(this.fallbackIcon, this.domain).then(value => {
 						img.src = value;
 						this.plugin.setColorAttributes(img);
 					});
@@ -241,7 +246,6 @@ class IconWidget extends WidgetType {
 				img.style.display = "block";
 
 				el.append(img);
-
 			}
 
 			return el;

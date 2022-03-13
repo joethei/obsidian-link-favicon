@@ -22,3 +22,4 @@ test.json
 schemas.json
 *.csv
 *.lock
+cache
