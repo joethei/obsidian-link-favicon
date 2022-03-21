@@ -1,4 +1,4 @@
-import {request} from "obsidian";
+import {requestUrl} from "obsidian";
 import {FaviconPluginSettings} from "./settings";
 
 export interface IconProvider {
@@ -11,17 +11,15 @@ export const providers: Record<string, IconProvider> = {
 	'duckduckgo': {name: 'DuckDuckGo', url: domain => Promise.resolve("https://icons.duckduckgo.com/ip3/" + domain + ".ico")},
 	'iconhorse': {name: 'Icon Horse', url: domain => Promise.resolve("https://icon.horse/icon/" + domain)},
 	'splitbee': {name: 'Splitbee', url: domain => Promise.resolve("https://favicon.splitbee.io/?url=" + domain)},
-	'besticon': {name: 'The Favicon Finder', url: (domain, settings) => {
+	'besticon': {name: 'The Favicon Finder', url: async (domain, settings) => {
 		const host = settings.provider === "besticon" ? settings.providerDomain : settings.fallbackProviderDomain;
-		return Promise.resolve(host + "/icon?url=" + domain + "&size=32..64..256");
+		const result = await requestUrl({url: host + "/allicons.json?url=" + domain});
+		if(result.json.icons.length === 0) return Promise.resolve("http://invalid.stuff");
+		return Promise.resolve(result.json.icons[0].url);
 	}},
 	'favicongrabber': {name: 'Favicon Grabber', url: (async (domain) => {
-			const icons = JSON.parse(await request({
-				method: "GET",
-				url: "https://favicongrabber.com/api/grab/" + domain
-			}));
-
-			if(icons.length === 0) return Promise.resolve("http://invalid.stuff");
-			return Promise.resolve(icons.icons[0].src);
+			const result = await requestUrl({url: "https://favicongrabber.com/api/grab/" + domain});
+			if(result.json.length === 0) return Promise.resolve("http://invalid.stuff");
+			return Promise.resolve(result.json.icons[0].src);
 		})},
 }

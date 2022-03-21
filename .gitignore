@@ -17,9 +17,10 @@ main.js
 *.map
 
 # obsidian
-data.json
+build/data.json
 test.json
 schemas.json
 *.csv
 *.lock
 cache
+build

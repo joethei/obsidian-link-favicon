@@ -1,6 +1,9 @@
 import esbuild from "esbuild";
+import fs from 'fs';
 import process from "process";
 import builtins from 'builtin-modules';
+import sass from "sass";
+import minify from "css-minify";
 
 const banner =
 `/*
@@ -12,6 +15,32 @@ https://github.com/joethei/obisidian-link-favicon
 
 const prod = (process.argv[2] === 'production');
 
+const copyMinifiedCSS = {
+	name: 'minify-css',
+	setup: (build) => {
+		build.onEnd(async () => {
+			const {css} = sass.compile('src/styles.scss');
+			let content;
+			if(prod) {
+				const minCss = await minify(css);
+				content = `${banner}\n${minCss}`;
+			}else {
+				content = `${banner}\n${css}`;
+			}
+			fs.writeFileSync('build/styles.css', content, {encoding: 'utf-8'});
+		})
+	}
+}
+
+const copyManifest = {
+	name: 'copy-manifest',
+	setup: (build) => {
+		build.onEnd(() => {
+			fs.copyFileSync('manifest.json', 'build/manifest.json');
+		});
+	},
+};
+
 esbuild.build({
 	banner: {
 		js: banner,
@@ -21,9 +50,11 @@ esbuild.build({
 	external: ['obsidian', 'electron', '@codemirror/language', '@codemirror/rangeset', '@codemirror/state', '@codemirror/stream-parser', '@codemirror/view', ...builtins],
 	format: 'cjs',
 	watch: !prod,
+	minify: prod,
 	target: 'es2016',
 	logLevel: "info",
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
-	outfile: 'main.js',
+	outfile: 'build/main.js',
+	plugins: [copyManifest, copyMinifiedCSS]
 }).catch(() => process.exit(1));

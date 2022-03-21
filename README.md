@@ -51,6 +51,8 @@ To do this specify the name of the uri scheme(without `://`) in the settings.
 ![Custom icons demo](https://i.joethei.space/Obsidian_dtVoxv2Xbf.gif)
 
 ### For Designers
+For help with styling you can also check out the `#appearance` channel on
+the [Obsidian Members Group Discord](https://obsidian.md/community)
 
 If you want to style the favicons you can use a CSS snippet similar to the one below, which makes all favicons appear in
 grayscale.
@@ -72,8 +74,20 @@ icon <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Externa
 }
 ```
 
-For help with styling you can also check out the `#appearance` channel on
-the [Obsidian Members Group Discord](https://obsidian.md/community)
+#### Color Inversion
+
+By default, icons that are perceived as unreadable will have a color filter applied to help with readability.
+There are multiple metrics that could be used to decide if an icon is readable or not:
+- `is-dark`, `is-light`: whether the icon's color perceived brightness is dark/light.
+- `is-readable-a-a`: according to the [W3C AA specification](https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html)
+- `is-readable-a-a-a`: according to the [W3C AAA specification](https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast7.html)
+
+By default, the AA value is used.
+
+using the `is-dark`, `is-light` values is not recommended as they don't take the background color into account.
+
+These values are calculated from the average color.
+Using the most dominant color would be more accurate, but is not implemented currently.
 
 ### For Developers
 

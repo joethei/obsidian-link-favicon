@@ -1,5 +1,5 @@
 import FaviconPlugin from "./main";
-import {Modal, Setting} from "obsidian";
+import {Modal, Notice, Setting} from "obsidian";
 import {OverwrittenFavicon} from "./settings";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
 import {SchemaSuggest} from "./SchemaSuggest";
@@ -124,8 +124,13 @@ export class OverwrittenIconModal extends Modal {
 			b.setTooltip("Save")
 				.setIcon("checkmark")
 				.onClick(async () => {
-					this.saved = true;
-					this.close();
+					if(this.icon && this.domain) {
+						this.saved = true;
+						this.close();
+					}else {
+						new Notice("Please supply both a " + this.name + " & a icon");
+					}
+
 				});
 			return b;
 		});
