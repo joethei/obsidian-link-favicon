@@ -88,7 +88,7 @@ export default class FaviconPlugin extends Plugin {
 			extension = "png";
 		}
 
-		const dir = this.manifest.dir + "/cache/";
+		const dir = this.app.vault.configDir + "/favicons/";
 		if (!await this.app.vault.adapter.exists(dir)) {
 			await this.app.vault.adapter.mkdir(dir);
 		}
