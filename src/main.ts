@@ -1,10 +1,11 @@
-import {Plugin, requestUrl, TFile} from 'obsidian';
+import {Plugin, requestUrl} from 'obsidian';
 import {DEFAULT_SETTINGS, FaviconPluginSettings, FaviconSettings} from "./settings";
 import {IconProvider} from "./provider";
 import {getApi} from "@aidenlx/obsidian-icon-shortcodes";
 import FastAverageColor from "fast-average-color";
 import tinycolor from "tinycolor2";
 import {PostProcessor} from "./PostProcessor";
+import ls from 'localstorage-slim';
 
 export default class FaviconPlugin extends Plugin {
 	settings: FaviconPluginSettings;
@@ -75,10 +76,19 @@ export default class FaviconPlugin extends Plugin {
 		return provider.url(domain.hostname, this.settings);
 	}
 
-	async downloadIcon(icon: string, targetPath: string): Promise<TFile> {
-		const buffer = await requestUrl({url: icon});
-		const arrayBuffer = buffer.arrayBuffer;
-		return this.app.vault.createBinary(targetPath, arrayBuffer);
+	async downloadIcon(icon: string): Promise<string> {
+		const request = await requestUrl({url: icon});
+		const view = new Uint8Array(request.arrayBuffer);
+		const blob = new Blob([view], {type: "image/png"});
+		return await this.blobToBase64(blob);
+	}
+
+	blobToBase64(blob: Blob): Promise<string> {
+		return new Promise((resolve, _) => {
+			const reader = new FileReader();
+			reader.onloadend = () => resolve(reader.result as string);
+			reader.readAsDataURL(blob);
+		});
 	}
 
 	async downloadIconToBlob(icon: string, hostname: string): Promise<string> {
@@ -88,49 +98,40 @@ export default class FaviconPlugin extends Plugin {
 			extension = "png";
 		}
 
-		const dir = this.app.vault.configDir + "/favicons/";
-		if (!await this.app.vault.adapter.exists(dir)) {
-			await this.app.vault.adapter.mkdir(dir);
-		}
-		const filepath = dir + hostname + "." + extension;
+		const name = "lf-" + hostname + "." + extension;
 
-		if (!await this.app.vault.adapter.exists(filepath)) {
-			await this.downloadIcon(icon, filepath);
-			return this.app.vault.adapter.getResourcePath(filepath);
-		} else {
-			const stat = await this.app.vault.adapter.stat(filepath);
-			if (stat.ctime === 0) {
-				await this.app.vault.adapter.remove(filepath);
-				await this.downloadIcon(icon, filepath);
-				return this.app.vault.adapter.getResourcePath(filepath);
-			}
-
-			const diff = Date.now() - stat.ctime;
-			const time = this.settings.cacheTime * 30 * 24 * 60 * 1000;
-			if (diff > time) {
-				await this.app.vault.adapter.remove(filepath);
-				await this.downloadIcon(icon, filepath);
-				return this.app.vault.adapter.getResourcePath(filepath);
-			} else {
-				return this.app.vault.adapter.getResourcePath(filepath);
-			}
+		const entry = ls.get<string>(name);
+		if(entry) {
+			return entry;
 		}
+
+		//cache for one month
+		ls.set<string>(name, await this.downloadIcon(icon), {ttl: 30 * 24 * 60 * 60});
 	}
 
 	async setColorAttributes(img: HTMLImageElement) {
-		const darkEl = document.getElementsByClassName("theme-dark")[0];
-		const lightEl = document.getElementsByClassName("theme-light")[0];
+		const darkEl = activeDocument.getElementsByClassName("theme-dark")[0];
+		const lightEl = activeDocument.getElementsByClassName("theme-light")[0];
 
 		//@ts-ignore
 		const isDarkMode = app.getTheme() === "obsidian";
 		let background: string;
 
 		if (isDarkMode) {
-			const style = window.getComputedStyle(darkEl);
-			background = style.getPropertyValue('--background-primary');
+			try {
+				const style = activeWindow.getComputedStyle(darkEl);
+				background = style.getPropertyValue('--background-primary');
+			}catch (e) {
+				background = "000000";
+			}
+
 		} else {
-			const style = window.getComputedStyle(lightEl);
-			background = style.getPropertyValue('--background-primary');
+			try {
+				const style = activeWindow.getComputedStyle(lightEl);
+				background = style.getPropertyValue('--background-primary');
+			}catch (e) {
+				background = "FFFFFF";
+			}
 		}
 		try {
 			const color = await this.fac.getColorAsync(img);
@@ -163,6 +164,13 @@ export default class FaviconPlugin extends Plugin {
 	async onload() {
 		console.log("enabling plugin: link favicons");
 		await this.loadSettings();
+
+		/*
+		TODO: enable once mobile has been updated to API 0.15.0
+		const dir = this.app.vault.configDir + "/favicons/";
+		if(await this.app.vault.adapter.exists(dir)) {
+			await this.app.vault.adapter.rmdir(dir, true);
+		}*/
 
 		this.addSettingTab(new FaviconSettings(this.app, this));
 		if (this.isUsingLivePreviewEnabledEditor()) {

@@ -1,7 +1,6 @@
 import {Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view";
 import {StateEffect, StateEffectType, StateField} from "@codemirror/state";
-import {syntaxTree} from "@codemirror/language";
-import {tokenClassNodeProp} from "@codemirror/stream-parser";
+import {syntaxTree, tokenClassNodeProp} from "@codemirror/language";
 import FaviconPlugin from "../main";
 import {TokenSpec} from "./TokenSpec";
 import {StatefulDecorationSet} from "./StatefulDecorationSet";
@@ -45,26 +44,26 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 					tree.iterate({
 						from,
 						to,
-						enter: (type, from, to) => {
-							const tokenProps = type.prop(tokenClassNodeProp);
+						enter: (node) => {
+							const tokenProps = node.type.prop<string>(tokenClassNodeProp);
 							if (tokenProps) {
 								const props = new Set(tokenProps.split(" "));
 								const isExternalLink = props.has("url");
-								let linkText = view.state.doc.sliceString(from, to);
+								let linkText = view.state.doc.sliceString(node.from, node.to);
 								linkText = linkText.replace(/[<>]/g, '');
 								if (isExternalLink && linkText.contains(":")) {
-									const line = view.state.doc.lineAt(from);
-									const before = view.state.doc.sliceString(from - 1, from);
+									const line = view.state.doc.lineAt(node.from);
+									const before = view.state.doc.sliceString(node.from - 1, node.from);
 									if(before !== "(") {
 										if(!plugin.settings.showLink) return;
-										targetElements.push({from: from, to: to, value: linkText});
+										targetElements.push({from: node.from, to: node.to, value: linkText});
 										return;
 									}
 
 									if(!plugin.settings.showAliased) return;
 
 									//scanning for the matching opening bracket of the alias, to get the correct position for the icon
-									const toLine = line.to - to;
+									const toLine = line.to - node.to;
 									const toLineT = line.length - toLine;
 									const lastIndex = line.text.lastIndexOf("]", toLineT);
 									const open = findOpenParen(line.text, lastIndex);
@@ -72,7 +71,7 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 										return;
 									}
 									const fromTarget = line.from + open;
-									targetElements.push({from: fromTarget, to: to, value: linkText});
+									targetElements.push({from: fromTarget, to: node.to, value: linkText});
 								}
 							}
 						},

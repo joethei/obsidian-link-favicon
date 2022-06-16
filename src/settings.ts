@@ -23,7 +23,6 @@ export interface FaviconPluginSettings {
 	enableReading: boolean,
 	enableSource: boolean,
 	enableLivePreview: boolean,
-	cacheTime: number,
 	debounce: number,
 }
 
@@ -40,7 +39,6 @@ export const DEFAULT_SETTINGS: FaviconPluginSettings = {
 	enableReading: true,
 	enableSource: true,
 	enableLivePreview: true,
-	cacheTime: 6,
 	debounce: 500,
 }
 
@@ -140,20 +138,6 @@ export class FaviconSettings extends PluginSettingTab {
 					text.inputEl.setAttr("rows", 8);
 				}
 			);
-
-		new Setting(containerEl)
-			.setName('Cache icons for X months')
-			.setDesc('')
-			.addSlider(slider => {
-				slider
-					.setLimits(1, 24, 1)
-					.setDynamicTooltip()
-					.setValue(this.plugin.settings.cacheTime)
-					.onChange(async (value) => {
-						this.plugin.settings.cacheTime = value;
-						await this.plugin.saveSettings();
-					});
-			});
 
 		containerEl.createEl("h2", {text: "Design"});
 

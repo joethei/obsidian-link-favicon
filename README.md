@@ -58,7 +58,7 @@ If you want to style the favicons you can use a CSS snippet similar to the one b
 grayscale.
 
 ```css
-.link-favicon {
+body .link-favicon[data-is-readable-a-a] {
 	filter: grayscale(100%);
 }
 ```
