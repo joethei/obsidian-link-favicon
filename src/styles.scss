@@ -1,4 +1,6 @@
-.link-favicon{
+
+
+.link-favicon {
 	vertical-align: bottom;
 	margin-bottom: 0.3em;
 	margin-left: 0.1em;
@@ -13,12 +15,12 @@
 	text-align: center;
 }
 
-.link-favicon-preview img{
+.link-favicon-preview img {
 	height: 50px;
 }
 
 .link-favicon[data-is-readable-a-a="false"] {
-	filter: hue-rotate(180deg) invert(1.0);
+	filter: hue-rotate(180deg) invert(1);
 }
 
 .link-favicon-scrollable-content {

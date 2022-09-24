@@ -10,7 +10,7 @@ Plugin for [Obsidian](https://obsidian.md)
 
 With this plugin you can see the favicon for a linked website without using any custom CSS.
 
-![Demo](https://i.joethei.space/Obsidian_Qe0GnS62Md.png)
+![Demo](https://i.joethei.space/Obsidian_zWTByulHmW.png)
 
 Works with: [Admonition](https://github.com/valentine195/obsidian-admonition)
 , [RSS Reader](https://github.com/joethei/obsidian-rss) and many more plugins.
@@ -48,9 +48,15 @@ You can also add icons for uri schemes such as `mailto://`, `obsidian://` or `ca
 To do this specify the name of the uri scheme(without `://`) in the settings.
 (See the demo gif below)
 
-![Custom icons demo](https://i.joethei.space/Obsidian_dtVoxv2Xbf.gif)
+![Custom icons demo](https://i.joethei.space/IJkX7xvrUB.gif)
 
-### For Designers
+## Disabling on specific links
+If you have a link where you do not want to see the favicon, add `|nofavicon` to the link alias.
+```md
+[Display text|nofavicon](https://example.org)
+```
+
+## For Designers
 For help with styling you can also check out the `#appearance` channel on
 the [Obsidian Members Group Discord](https://obsidian.md/community)
 
@@ -69,7 +75,12 @@ icon <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Externa
 .
 
 ```css
-.external-link[data-favicon="true"] {
+.external-link.external-link.external-link::after {
+	display: none;
+	content: '';
+}
+
+.external-link {
 	background-image: none;
 }
 ```

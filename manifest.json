@@ -1,7 +1,7 @@
 {
 	"id": "link-favicon",
 	"name": "Link Favicons",
-	"version": "1.7.4",
+	"version": "1.8.0",
 	"minAppVersion": "0.15.0",
 	"description": "See the favicon for a linked website. ",
 	"author": "Johannes Theiner",

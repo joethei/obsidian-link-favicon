@@ -1,9 +1,10 @@
-import {App, ButtonComponent, PluginSettingTab, Setting} from "obsidian";
+import {App, ButtonComponent, Notice, PluginSettingTab, Setting} from "obsidian";
 import FaviconPlugin from "./main";
 import {providers} from "./provider";
 import {OverwrittenIconModal} from "./OverwrittenIconModal";
 import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
 import {ProviderTestModal} from "./ProviderTestModal";
+import ls from "localstorage-slim";
 
 export interface OverwrittenFavicon {
 	domain: string,
@@ -24,6 +25,7 @@ export interface FaviconPluginSettings {
 	enableSource: boolean,
 	enableLivePreview: boolean,
 	debounce: number,
+	iconPosition: string,
 }
 
 export const DEFAULT_SETTINGS: FaviconPluginSettings = {
@@ -40,6 +42,7 @@ export const DEFAULT_SETTINGS: FaviconPluginSettings = {
 	enableSource: true,
 	enableLivePreview: true,
 	debounce: 500,
+	iconPosition: 'front'
 }
 
 export class FaviconSettings extends PluginSettingTab {
@@ -200,7 +203,21 @@ export class FaviconSettings extends PluginSettingTab {
 					});
 			});
 
+		new Setting(containerEl)
+			.setName("Icon Position")
+			.addDropdown(dropdown => {
+				dropdown
+					.addOption('front', "Before the link")
+					.addOption('back', "After the link")
+					.setValue(this.plugin.settings.iconPosition)
+					.onChange(async(value) => {
+						this.plugin.settings.iconPosition = value;
+						await this.plugin.saveSettings();
+					});
+			})
+
 		if (isPluginEnabled(this.plugin)) {
+			const iconAPI = getApi(this.plugin)!;
 			containerEl.createEl("h2", {text: "Custom icons"});
 
 			containerEl.createEl("h3", {text: "for Domains"});
@@ -238,10 +255,8 @@ export class FaviconSettings extends PluginSettingTab {
 			for (const overwritten of this.plugin.settings.overwritten) {
 				const setting = new Setting(overwrittenDiv);
 
-				const iconAPI = getApi(this.plugin);
-
 				const desc = new DocumentFragment();
-				desc.createEl("p", {text: "		" + overwritten.icon}).prepend(iconAPI.getIcon(overwritten.icon));
+				desc.createEl("p", {text: "		" + overwritten.icon}).prepend(iconAPI.getIcon(overwritten.icon)!);
 
 				setting
 					.setName(overwritten.domain)
@@ -315,14 +330,12 @@ export class FaviconSettings extends PluginSettingTab {
 
 			const protocolContainer = containerEl.createDiv("overwritten");
 
-			const voicesDiv = protocolContainer.createDiv("overwritten");
+			const protocolDiv = protocolContainer.createDiv("overwritten");
 			for (const protocol of this.plugin.settings.protocol) {
-				const setting = new Setting(voicesDiv);
-
-				const iconAPI = getApi(this.plugin);
+				const setting = new Setting(protocolDiv);
 
 				const desc = new DocumentFragment();
-				desc.createEl("p", {text: "		" + protocol.icon}).prepend(iconAPI.getIcon(protocol.icon));
+				desc.createEl("p", {text: "		" + protocol.icon}).prepend(iconAPI.getIcon(protocol.icon)!);
 
 				setting
 					.setName(protocol.domain)
@@ -364,8 +377,7 @@ export class FaviconSettings extends PluginSettingTab {
 			}
 
 			const details = containerEl.createEl("details");
-			const summary = details.createEl("summary");
-			summary.setText("Advanced");
+			details.createEl("summary", {text: 'Advanced'});
 			const advanced = details.createDiv("advanced");
 
 			new Setting(advanced)
@@ -381,6 +393,39 @@ export class FaviconSettings extends PluginSettingTab {
 							await this.plugin.saveSettings();
 						});
 				});
+
+
+			if(localStorage.getItem('debug-plugin') === '1') {
+				containerEl.createEl('h1', {text: 'Debugging tools'});
+				containerEl.createEl('p', {text: 'Only use these tools if you know what you are doing'});
+
+				const cachedDetails = containerEl.createEl('details');
+				const cachedSummary = cachedDetails.createEl('summary', {text: 'Cached icons'});
+				const cached = cachedDetails.createDiv('cached');
+				Object.keys(localStorage).forEach((key) => {
+					if(key.startsWith("lf-")) {
+						cached.createEl('p', {text: key});
+						cached.createEl('img', {attr: {src: ls.get(key)}});
+					}
+				});
+
+				new Setting(containerEl)
+					.setName('Clear icon cache')
+					.setDesc('Remove all icons from cache')
+					.addButton(button => {
+						button.setButtonText('Clear')
+							.onClick(() => {
+								Object.keys(localStorage).forEach((key) => {
+									if(key.startsWith("lf-")) {
+										localStorage.removeItem(key);
+									}
+								});
+								new Notice("Cleared cache");
+								this.display();
+							});
+					});
+			}
+
 		}
 	}
 }

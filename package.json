@@ -1,27 +1,42 @@
 {
 	"name": "link-favicon",
-	"version": "1.7.4",
+	"version": "1.8.0",
 	"description": "See the favicon for a linked website. ",
 	"main": "src/main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "node esbuild.config.mjs production",
-		"lint": "eslint . --ext .ts"
+		"lint": "eslint . --ext .ts",
+		"lint-css": "stylelint src/styles.scss",
+		"test": "jest"
 	},
 	"keywords": [],
 	"author": "Johannes Theiner",
 	"license": "GPL-3.0",
 	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "5.5.0",
+		"@typescript-eslint/parser": "5.5.0",
+		"esbuild": "0.13.12",
+		"eslint": "8.4.1",
+		"sass": "1.49.9",
+		"css-minify": "2.0.0",
+		"stylelint": "14.9.1",
+		"stylelint-config-standard": "26.0.0",
+		"stylelint-config-standard-scss": "3.0.0",
+		"jest": "28.1.3",
+		"@types/jest": "28.1.6",
+		"ts-jest": "28.0.7",
+		"jsdom": "20.0.0",
+		"@types/jsdom": "20.0.0",
+		"jsdom-global": "3.0.2",
+		"jest-environment-jsdom": "28.1.3"
+	},
+	"dependencies": {
 		"@aidenlx/obsidian-icon-shortcodes": "0.9.0",
 		"@codemirror/language": "https://github.com/lishid/cm-language",
 		"@codemirror/state": "6.0.0",
 		"@codemirror/view": "6.0.0",
 		"@types/node": "16.11.11",
-		"@typescript-eslint/eslint-plugin": "5.5.0",
-		"@typescript-eslint/parser": "5.5.0",
-		"builtin-modules": "3.2.0",
-		"esbuild": "0.13.12",
-		"eslint": "8.4.1",
 		"obsidian": "0.15.0",
 		"tslib": "2.3.1",
 		"typescript": "4.4.4",
@@ -29,8 +44,10 @@
 		"@popperjs/core": "2.11.2",
 		"tinycolor2": "1.4.2",
 		"@types/tinycolor2": "1.4.3",
-		"sass": "1.49.9",
-		"css-minify": "2.0.0",
-		"localstorage-slim": "2.3.0"
+		"localstorage-slim": "2.3.0",
+		"builtin-modules": "3.2.0"
+	},
+	"overrides": {
+		"obsidian": "$obsidian"
 	}
 }

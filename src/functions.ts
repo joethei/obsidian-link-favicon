@@ -1,13 +1,17 @@
 export function findOpenParen(text: string, closePos: number): number {
-	if (!text.includes("[")) return 0;
+	return findMatchingSymbol(text, closePos, "[", "]");
+}
+
+export function findMatchingSymbol(text: string, closePos: number, openSymbol: string, closingSymbol: string): number {
+	if (!text.includes(openSymbol)) return 0;
 	let openPos = closePos;
 	let counter = 1;
 	while (counter > 0) {
 		const c = text[--openPos];
 		if (c === undefined) break;
-		if (c == '[') {
+		if (c == openSymbol) {
 			counter--;
-		} else if (c == ']') {
+		} else if (c == closingSymbol) {
 			counter++;
 		}
 	}

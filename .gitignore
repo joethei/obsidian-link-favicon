@@ -24,3 +24,4 @@ schemas.json
 *.lock
 cache
 build
+coverage
