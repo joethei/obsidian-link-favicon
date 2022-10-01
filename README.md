@@ -75,7 +75,7 @@ icon <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Externa
 .
 
 ```css
-.external-link.external-link.external-link::after {
+.external-link::after {
 	display: none;
 	content: '';
 }

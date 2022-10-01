@@ -27,7 +27,6 @@ export class IconAdder {
 			return new URL(link);
 		} catch (e) {
 			//we have a link without a protocol for some reason
-			console.log(link);
 			if(!link.startsWith("http")) return this.constructURL("http://" + link);
 			return undefined;
 		}
