@@ -45,7 +45,8 @@
 		"tinycolor2": "1.4.2",
 		"@types/tinycolor2": "1.4.3",
 		"localstorage-slim": "2.3.0",
-		"builtin-modules": "3.2.0"
+		"builtin-modules": "3.2.0",
+		"localforage": "1.10.0"
 	},
 	"overrides": {
 		"obsidian": "$obsidian"

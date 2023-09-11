@@ -212,7 +212,8 @@ export class FaviconSettings extends PluginSettingTab {
 						this.plugin.settings.iconPosition = value;
 						await this.plugin.saveSettings();
 					});
-			})
+			});
+
 
 		if (isPluginEnabled(this.plugin)) {
 			const iconAPI = getApi(this.plugin)!;
@@ -392,38 +393,37 @@ export class FaviconSettings extends PluginSettingTab {
 						});
 				});
 
-
-			if(localStorage.getItem('debug-plugin') === '1') {
-				containerEl.createEl('h1', {text: 'Debugging tools'});
-				containerEl.createEl('p', {text: 'Only use these tools if you know what you are doing'});
-
-				const cachedDetails = containerEl.createEl('details');
-				const cachedSummary = cachedDetails.createEl('summary', {text: 'Cached icons'});
-				const cached = cachedDetails.createDiv('cached');
-				Object.keys(localStorage).forEach((key) => {
-					if(key.startsWith("lf-")) {
-						cached.createEl('p', {text: key});
-						cached.createEl('img', {attr: {src: ls.get(key)}});
-					}
-				});
-
-				new Setting(containerEl)
-					.setName('Clear icon cache')
-					.setDesc('Remove all icons from cache')
-					.addButton(button => {
-						button.setButtonText('Clear')
-							.onClick(() => {
-								Object.keys(localStorage).forEach((key) => {
-									if(key.startsWith("lf-")) {
-										localStorage.removeItem(key);
-									}
-								});
-								new Notice("Cleared cache");
-								this.display();
-							});
-					});
-			}
-
 		}
+
+		if(localStorage.getItem('debug-plugin') === '1') {
+			containerEl.createEl('h1', {text: 'Debugging tools'});
+			containerEl.createEl('p', {text: 'Only use these tools if you know what you are doing'});
+
+			const cachedDetails = containerEl.createEl('details');
+			cachedDetails.createEl('summary', {text: 'Cached icons'});
+			const cached = cachedDetails.createDiv('cached');
+			Object.keys(localStorage).forEach((key) => {
+				if(key.startsWith("lf-")) {
+					cached.createEl('p', {text: key});
+					cached.createEl('img', {attr: {src: ls.get(key)}});
+				}
+			});
+
+			new Setting(containerEl)
+				.setName('Clear icon cache')
+				.setDesc('Remove all icons from cache')
+				.addButton(button => {
+					button.setButtonText('Clear')
+						.onClick(() => {
+							Object.keys(localStorage).forEach((key) => {
+								if(key.startsWith("lf-")) {
+									localStorage.removeItem(key);
+								}
+							});
+							new Notice("Cleared cache");
+							this.display();
+						});
+				});
+			}
 	}
 }

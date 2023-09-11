@@ -1,7 +1,6 @@
 import {EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view";
 import {IconDecorationSet} from "../icon/IconDecorationSet";
 import {TokenSpec} from "../TokenSpec";
-import {syntaxTree} from "@codemirror/language";
 import FaviconPlugin from "../../main";
 import {defineStatefulDecoration} from "../Decoration";
 import {TextDecorationSet} from "./TextDecorationSet";
@@ -35,11 +34,12 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 
 				for (const {from, to} of view.visibleRanges) {
 					const text = view.state.sliceDoc(from, to);
-					for (let match of text.matchAll(/\|nofavicon/g)) {
+					for (const match of text.matchAll(/\|nofavicon/g)) {
 						const matchFrom = match.index;
+						if (!matchFrom) continue;
 						const matchTo = matchFrom + match[0].length;
 						let inSelection = false;
-						for (let range of view.state.selection.ranges) {
+						for (const range of view.state.selection.ranges) {
 							if ((range.from <= matchFrom && range.to >= matchTo) || (range.from >= matchFrom && range.to <= matchTo)) {
 								inSelection = true;
 							}

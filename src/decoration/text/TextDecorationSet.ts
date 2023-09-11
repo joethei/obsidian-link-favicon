@@ -3,9 +3,7 @@ import FaviconPlugin from "../../main";
 import {debounce, Debouncer} from "obsidian";
 import {TokenSpec} from "../TokenSpec";
 import {Range} from "@codemirror/rangeset";
-import {providers} from "../../provider";
 import {textRemovingDecorations} from "./TextRemovingDecoration";
-import {TextWidget} from "./TextWidget";
 
 export class TextDecorationSet {
 	editor: EditorView;
