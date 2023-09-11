@@ -58,10 +58,8 @@ export class FaviconSettings extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Link Favicons'});
-
 		new Setting(containerEl)
-			.setName("Icon Provider")
+			.setName("Icon provider")
 			.addDropdown((dropdown) => {
 				for (const id in providers) {
 					if (providers.hasOwnProperty(id)) {
@@ -79,7 +77,7 @@ export class FaviconSettings extends PluginSettingTab {
 
 		if (Array.of("besticon").includes(this.plugin.settings.provider)) {
 			new Setting(containerEl)
-				.setName('Provider Domain')
+				.setName('Provider domain')
 				.setDesc('This Provider is selfhosted, please specify your deployment url. Refer to the readme of the provider for deployment instructions.')
 				.addText(text => text
 					.setValue(this.plugin.settings.providerDomain)
@@ -90,7 +88,7 @@ export class FaviconSettings extends PluginSettingTab {
 		}
 
 		new Setting(containerEl)
-			.setName("Fallback Icon Provider")
+			.setName("Fallback icon provider")
 			.addDropdown((dropdown) => {
 				for (const id in providers) {
 					if (providers.hasOwnProperty(id)) {
@@ -108,7 +106,7 @@ export class FaviconSettings extends PluginSettingTab {
 
 		if (Array.of("besticon").includes(this.plugin.settings.fallbackProvider)) {
 			new Setting(containerEl)
-				.setName('Fallback Provider Domain')
+				.setName('Fallback provider domain')
 				.setDesc('This Provider is be selfhosted, please specify your deployment url. Refer to the readme of the provider for deployment instructions.')
 				.addText(text => text
 					.setValue(this.plugin.settings.fallbackProviderDomain)
@@ -129,7 +127,7 @@ export class FaviconSettings extends PluginSettingTab {
 
 
 		new Setting(containerEl)
-			.setName('Ignored Domains')
+			.setName('Ignored domains')
 			.setDesc("Don't show an favicon for these domains(one per line)")
 			.addTextArea(text => {
 					text
@@ -220,10 +218,10 @@ export class FaviconSettings extends PluginSettingTab {
 			const iconAPI = getApi(this.plugin)!;
 			containerEl.createEl("h2", {text: "Custom icons"});
 
-			containerEl.createEl("h3", {text: "for Domains"});
+			containerEl.createEl("h3", {text: "for domains"});
 
 			new Setting(containerEl)
-				.setName("Add New")
+				.setName("Add new")
 				.setDesc("Add custom icon")
 				.addButton((button: ButtonComponent): ButtonComponent => {
 					return button
@@ -299,10 +297,10 @@ export class FaviconSettings extends PluginSettingTab {
 			}
 
 
-			containerEl.createEl("h3", {text: "for URI Schemas"});
+			containerEl.createEl("h3", {text: "for URI schemas"});
 
 			new Setting(containerEl)
-				.setName("Add New")
+				.setName("Add new")
 				.setDesc("Add custom icon")
 				.addButton((button: ButtonComponent): ButtonComponent => {
 					return button
