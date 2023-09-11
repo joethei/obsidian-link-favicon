@@ -22,16 +22,24 @@ export class ProviderTestModal extends Modal {
 				.onChange(value => {
 					this.link = value;
 				});
+			text.inputEl.addEventListener('keydown', (event) => {
+				if (event.key === 'Enter') {
+					this.display();
+				}
+			});
 		});
-		new Setting(contentEl).setName("Show Favicon").addButton(button => {
+		new Setting(contentEl).setName("").addButton(button => {
 			button
-				.setButtonText("Apply")
+				.setButtonText("Test")
 				.onClick(() => {
 					this.display();
 				});
 		});
 
 		if(this.link) {
+			if(!this.link.startsWith("http")) {
+				this.link = "http://" + this.link;
+			}
 			try {
 				const url = new URL(this.link);
 
@@ -41,7 +49,7 @@ export class ProviderTestModal extends Modal {
 					preview.setAttribute("src", await provider.url(url.hostname, this.plugin.settings));
 				}
 			}catch (e) {
-				contentEl.createSpan({text: "Not a valid URL"});
+				contentEl.createSpan({text: "Could not generate favicon, check your settings"});
 			}
 
 		}
@@ -49,7 +57,7 @@ export class ProviderTestModal extends Modal {
 
 	}
 
-	async onOpen(): Promise<void> {
+	override async onOpen() {
 		await this.display();
 	}
 }
