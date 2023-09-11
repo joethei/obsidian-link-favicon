@@ -26,6 +26,7 @@ export interface FaviconPluginSettings {
 	enableLivePreview: boolean,
 	debounce: number,
 	iconPosition: string,
+	colorInversion: boolean,
 }
 
 export const DEFAULT_SETTINGS: FaviconPluginSettings = {
@@ -42,7 +43,8 @@ export const DEFAULT_SETTINGS: FaviconPluginSettings = {
 	enableSource: true,
 	enableLivePreview: true,
 	debounce: 500,
-	iconPosition: 'front'
+	iconPosition: 'front',
+	colorInversion: true,
 }
 
 export class FaviconSettings extends PluginSettingTab {
@@ -214,6 +216,17 @@ export class FaviconSettings extends PluginSettingTab {
 					});
 			});
 
+		new Setting(containerEl)
+			.setName('Color inversion')
+			.setDesc('Favicon colors will be automatically inverted if the icon is detected to be less readable')
+			.addToggle(toggle => {
+				toggle
+					.setValue(this.plugin.settings.colorInversion)
+					.onChange(async value => {
+						this.plugin.settings.colorInversion = value;
+						await this.plugin.saveSettings();
+					});
+			});
 
 		if (isPluginEnabled(this.plugin)) {
 			const iconAPI = getApi(this.plugin)!;

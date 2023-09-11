@@ -201,9 +201,11 @@ export class IconAdder {
 			img.dataset.isDark = String(color.isDark);
 			img.dataset.isLight = String(color.isLight);
 			const backgroundColor = tinycolor(background);
+			img.dataset.colorInversion = String(this.plugin.settings.colorInversion);
 			img.dataset.readable = tinycolor.readability(color.hex, backgroundColor).toString();
 			img.dataset.isReadableAA = String(tinycolor.isReadable(color.hex, backgroundColor));
 			img.dataset.isReadableAAA = String(tinycolor.isReadable(color.hex, backgroundColor, {level: "AAA"}));
+
 		} catch (e) {
 			console.error("could not extract color information from icon");
 			console.error(img);

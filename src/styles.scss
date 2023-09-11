@@ -19,7 +19,7 @@
 	height: 50px;
 }
 
-.link-favicon[data-is-readable-a-a="false"] {
+.link-favicon[data-is-readable-a-a="false"][data-color-rotation="true"] {
 	filter: hue-rotate(180deg) invert(1);
 }
 
