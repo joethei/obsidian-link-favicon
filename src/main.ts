@@ -106,6 +106,7 @@ export default class FaviconPlugin extends Plugin {
 
 		//respond to app events to fix #37
 		this.registerEvent(this.app.workspace.on('css-change', () => {
+			console.log("css-change");
 			this.app.workspace.updateOptions();
 		}));
 
@@ -118,11 +119,11 @@ export default class FaviconPlugin extends Plugin {
 			const Prec = require("@codemirror/state").Prec;
 			this.registerEditorExtension(Prec.lowest(asyncDecoBuilderExt(this)));
 			this.registerEditorExtension(Prec.lowest(textRemovingDecoration(this)));
-
 		}
 
 		const processor = new PostProcessor(this);
 		this.registerMarkdownPostProcessor(processor.processor);
+		this.app.workspace.updateOptions();
 	}
 
 	override onunload() {
