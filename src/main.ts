@@ -90,10 +90,8 @@ export default class FaviconPlugin extends Plugin {
 	 * @returns true if Live Preview is supported
 	 */
 	isUsingLivePreviewEnabledEditor(): boolean {
-		//eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const config = (this.app.vault as any).config;
-		if (config.legacyEditor === undefined) return false;
-		return !config.legacyEditor;
+		//@ts-ignore
+		return !app.vault.getConfig('legacyEditor');
 	}
 
 	override async onload() {
@@ -112,6 +110,7 @@ export default class FaviconPlugin extends Plugin {
 		}));
 
 		this.addSettingTab(new FaviconSettings(this.app, this));
+
 		if (this.isUsingLivePreviewEnabledEditor()) {
 			//eslint-disable-next-line @typescript-eslint/no-var-requires
 			const asyncDecoBuilderExt = require('./decoration/icon/IconDecorations').asyncDecoBuilderExt;
