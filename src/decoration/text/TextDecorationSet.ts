@@ -2,7 +2,7 @@ import {Decoration, DecorationSet, EditorView} from "@codemirror/view";
 import FaviconPlugin from "../../main";
 import {debounce, Debouncer} from "obsidian";
 import {TokenSpec} from "../TokenSpec";
-import {Range} from "@codemirror/rangeset";
+import {Range} from "@codemirror/state";
 import {textRemovingDecorations} from "./TextRemovingDecoration";
 
 export class TextDecorationSet {
