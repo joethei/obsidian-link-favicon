@@ -106,7 +106,6 @@ export default class FaviconPlugin extends Plugin {
 
 		//respond to app events to fix #37
 		this.registerEvent(this.app.workspace.on('css-change', () => {
-			console.log("css-change");
 			this.app.workspace.updateOptions();
 		}));
 

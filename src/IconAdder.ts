@@ -3,7 +3,7 @@ import {IconElement} from "./types";
 import ls from "localstorage-slim";
 import {arrayBufferToBase64, requestUrl} from "obsidian";
 import tinycolor from "tinycolor2";
-import FastAverageColor from "fast-average-color";
+import {FastAverageColor} from "fast-average-color";
 
 /**
  *
