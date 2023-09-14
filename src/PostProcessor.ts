@@ -1,4 +1,4 @@
-import {MarkdownPostProcessorContext} from "obsidian";
+import {MarkdownPostProcessorContext, Notice} from "obsidian";
 import {providers} from "./provider";
 import FaviconPlugin from "./main";
 
@@ -35,6 +35,7 @@ export class PostProcessor {
 
 		if (!provider || !fallbackProvider) {
 			console.error("Link Favicons: misconfigured providers");
+			new Notice('Link favicons:misconfigured providers, please check the settings');
 			return;
 		}
 
@@ -44,6 +45,7 @@ export class PostProcessor {
 			const links = element.querySelectorAll("a.external-link:not([data-favicon])");
 			for (let index = 0; index < links.length; index++) {
 				const link = links.item(index) as HTMLAnchorElement;
+				link.dataset.disabled = String(this.isDisabled(link));
 				if (!this.isDisabled(link)) {
 					if (link.textContent?.includes("|nofavicon")) {
 						link.href = link.href.replace("%7Cnofavicon", "");
@@ -51,6 +53,7 @@ export class PostProcessor {
 						link.textContent = link.textContent.replace("|nofavicon", "");
 						continue;
 					}
+
 
 					link.dataset.favicon = "true";
 
@@ -60,7 +63,12 @@ export class PostProcessor {
 					const url = this.plugin.iconAdder.constructURL(link.href);
 					if(!url) return;
 
-					await this.plugin.iconAdder.addFavicon(link, icon, fallbackIcon, url);
+					try {
+						await this.plugin.iconAdder.addFavicon(link, icon, fallbackIcon, url);
+					} catch(e) {
+						console.error(e);
+					}
+
 				}
 			}
 		}, timeout);
