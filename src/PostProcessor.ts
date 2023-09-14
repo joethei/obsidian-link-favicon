@@ -46,7 +46,9 @@ export class PostProcessor {
 				const link = links.item(index) as HTMLAnchorElement;
 				if (!this.isDisabled(link)) {
 					if (link.textContent?.includes("|nofavicon")) {
-						link.textContent = link.textContent.replace("|favicon", "");
+						link.href = link.href.replace("%7Cnofavicon", "");
+						link.ariaLabel = link.ariaLabel.replace("%7Cnofavicon", "");
+						link.textContent = link.textContent.replace("|nofavicon", "");
 						continue;
 					}
 
