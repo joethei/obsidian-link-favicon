@@ -55,7 +55,6 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 								const props = new Set(tokenProps.split(" "));
 								const isExternalLink = props.has("url");
 								let linkText = view.state.sliceDoc(node.from, node.to);
-								console.log(linkText);
 								if (isExternalLink && linkText.includes(":")) {
 									linkText = linkText.replace(/[<>]/g, '');
 									const before = view.state.doc.sliceString(node.from - 1, node.from);
