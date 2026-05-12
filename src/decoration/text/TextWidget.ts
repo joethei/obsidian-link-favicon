@@ -10,7 +10,7 @@ export class TextWidget extends WidgetType {
 	}
 
 	toDOM(view: EditorView): HTMLElement {
-		const el = document.createElement("span");
+		const el = activeDocument.createElement("span");
 		el.setText(this.text);
 		return el;
 	}

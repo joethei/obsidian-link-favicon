@@ -1,8 +1,13 @@
 import FaviconPlugin from "./main";
 import {Modal, Notice, Setting} from "obsidian";
 import {OverwrittenFavicon} from "./settings";
-import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
+import {getApi} from "@aidenlx/obsidian-icon-shortcodes";
 import {SchemaSuggest} from "./SchemaSuggest";
+
+interface SchemaInfo {
+	schema: string;
+	Description: string;
+}
 
 
 export class OverwrittenIconModal extends Modal {
@@ -28,7 +33,7 @@ export class OverwrittenIconModal extends Modal {
 	}
 
 	async displayPreview(contentEl: HTMLElement) : Promise<void> {
-		if(isPluginEnabled(this.plugin) && this.icon) {
+		if(getApi(this.plugin) && this.icon) {
 			contentEl.empty();
 			const iconPreview = contentEl.createDiv("preview");
 			iconPreview.addClass("link-favicon-preview");
@@ -45,14 +50,14 @@ export class OverwrittenIconModal extends Modal {
 
 		contentEl.empty();
 
-		//eslint-disable-next-line prefer-const
+		 
 		let previewEL: HTMLElement;
 
 		const nameSetting = new Setting(contentEl).setName(this.name);
 
 		if(this.name !== "Domain") {
-			//eslint-disable-next-line @typescript-eslint/no-var-requires
-			let schemas: {schema: string, Description: string}[] = require("../schemas.json");
+			//eslint-disable-next-line @typescript-eslint/no-require-imports
+			let schemas = require("../schemas.json") as unknown as SchemaInfo[];
 			//we don't need http/https to show up, they would not work here
 			schemas = schemas.filter(item => !item.schema.contains("http"));
 			const schemaNames = Object.values(schemas).map(schema => schema.schema);
@@ -145,7 +150,7 @@ export class OverwrittenIconModal extends Modal {
 		});
 	}
 
-	async onOpen() : Promise<void> {
-		await this.display();
+	override onOpen(): void {
+		void this.display();
 	}
 }

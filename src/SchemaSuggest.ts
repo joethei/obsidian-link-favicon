@@ -1,7 +1,6 @@
-import {App} from "obsidian";
-import {TextInputSuggest} from "./suggest";
+import {AbstractInputSuggest, App} from "obsidian";
 
-export class SchemaSuggest extends TextInputSuggest<string> {
+export class SchemaSuggest extends AbstractInputSuggest<string> {
 
 	content: Set<string>;
 	descriptions: Set<{name: string, description: string}>;
@@ -29,8 +28,6 @@ export class SchemaSuggest extends TextInputSuggest<string> {
 	}
 
 	selectSuggestion(content: string): void {
-		this.inputEl.value = content;
-		this.inputEl.trigger("input");
-		this.close();
+		this.setValue(content);
 	}
 }

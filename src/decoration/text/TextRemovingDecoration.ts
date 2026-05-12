@@ -1,5 +1,4 @@
 import {EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view";
-import {IconDecorationSet} from "../icon/IconDecorationSet";
 import {TokenSpec} from "../TokenSpec";
 import FaviconPlugin from "../../main";
 import {defineStatefulDecoration} from "../Decoration";
@@ -11,7 +10,7 @@ export const textRemovingDecorations = defineStatefulDecoration();
 function buildViewPlugin(plugin: FaviconPlugin) {
 	return ViewPlugin.fromClass(
 		class {
-			decoManager: IconDecorationSet;
+				decoManager: TextDecorationSet;
 
 
 			constructor(public view: EditorView) {

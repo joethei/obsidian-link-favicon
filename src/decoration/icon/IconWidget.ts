@@ -25,7 +25,7 @@ export class IconWidget extends WidgetType {
 
 	toDOM() {
 		if (!this.icon || this.icon === "") {
-			console.log("empty icon for " + this.qualifier);
+			console.debug("empty icon for " + this.qualifier);
 			return activeDocument.createElement("span");
 		}
 

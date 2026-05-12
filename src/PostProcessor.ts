@@ -21,12 +21,15 @@ export class PostProcessor {
 		let provider = providers[this.plugin.settings.provider];
 		let fallbackProvider = providers[this.plugin.settings.fallbackProvider];
 
-		//uses providers from frontmatter, if supplied for easier debugging
-		if (context.frontmatter) {
-			const fmProvider = providers[context.frontmatter["favicon-provider"]];
-			const fmFallbackProvider = providers[context.frontmatter["fallback-favicon-provider"]];
-			if (fmProvider)
-				provider = fmProvider;
+			//uses providers from frontmatter, if supplied for easier debugging
+			if (context.frontmatter) {
+				const frontmatter = context.frontmatter as Record<string, unknown>;
+				const providerName = frontmatter["favicon-provider"];
+				const fallbackProviderName = frontmatter["fallback-favicon-provider"];
+				const fmProvider = typeof providerName === "string" ? providers[providerName] : undefined;
+				const fmFallbackProvider = typeof fallbackProviderName === "string" ? providers[fallbackProviderName] : undefined;
+				if (fmProvider)
+					provider = fmProvider;
 
 			if (fmFallbackProvider)
 				fallbackProvider = fmFallbackProvider;
@@ -39,12 +42,17 @@ export class PostProcessor {
 			return;
 		}
 
-		//delay rendering in Preview, to allow other plugins to finish their stuff(like dataview for issue #13)
-		const timeout = 50;
-		setTimeout(async () => {
-			const links = element.querySelectorAll("a.external-link:not([data-favicon])");
-			for (let index = 0; index < links.length; index++) {
-				const link = links.item(index) as HTMLAnchorElement;
+			//delay rendering in Preview, to allow other plugins to finish their stuff(like dataview for issue #13)
+			const timeout = 50;
+			window.setTimeout(() => {
+				void this.processLinks(element, provider, fallbackProvider);
+			}, timeout);
+		}
+
+		private processLinks = async (element: HTMLElement, provider: typeof providers[string], fallbackProvider: typeof providers[string]): Promise<void> => {
+				const links = element.querySelectorAll("a.external-link:not([data-favicon])");
+				for (let index = 0; index < links.length; index++) {
+					const link = links.item(index) as HTMLAnchorElement;
 				link.dataset.disabled = String(this.isDisabled(link));
 				if (!this.isDisabled(link)) {
 					if (link.textContent?.includes("|nofavicon")) {
@@ -65,14 +73,13 @@ export class PostProcessor {
 
 					try {
 						await this.plugin.iconAdder.addFavicon(link, icon, fallbackIcon, url);
-					} catch(e) {
-						console.error(e);
-					}
+						} catch(e) {
+							console.error(e);
+						}
 
+					}
 				}
-			}
-		}, timeout);
-	}
+		}
 
 
 	isDisabled = (el: Element) => {

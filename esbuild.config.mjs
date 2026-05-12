@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 import fs from 'fs';
 import process from "process";
-import builtins from 'builtin-modules';
+import {builtinModules} from "node:module";
 import sass from "sass";
 import minify from "css-minify";
 
@@ -41,15 +41,14 @@ const copyManifest = {
 	},
 };
 
-esbuild.build({
+const options = {
 	banner: {
 		js: banner,
 	},
 	entryPoints: ['src/main.ts'],
 	bundle: true,
-	external: ['obsidian', 'electron', '@codemirror/language', '@codemirror/rangeset', '@codemirror/state', '@codemirror/stream-parser', '@codemirror/view', ...builtins],
+	external: ['obsidian', 'electron', '@codemirror/language', '@codemirror/rangeset', '@codemirror/state', '@codemirror/stream-parser', '@codemirror/view', ...builtinModules],
 	format: 'cjs',
-	watch: !prod,
 	minify: prod,
 	target: 'es2016',
 	logLevel: "info",
@@ -57,4 +56,12 @@ esbuild.build({
 	treeShaking: true,
 	outfile: 'build/main.js',
 	plugins: [copyManifest, copyMinifiedCSS]
-}).catch(() => process.exit(1));
+};
+
+if (prod) {
+	esbuild.build(options).catch(() => process.exit(1));
+} else {
+	esbuild.context(options)
+		.then((context) => context.watch())
+		.catch(() => process.exit(1));
+}

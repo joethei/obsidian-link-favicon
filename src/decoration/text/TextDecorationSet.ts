@@ -8,21 +8,22 @@ import {textRemovingDecorations} from "./TextRemovingDecoration";
 export class TextDecorationSet {
 	editor: EditorView;
 	plugin: FaviconPlugin;
-	decoCache: { [cls: string]: Decoration } = Object.create(null);
-	debouncedUpdate: Debouncer<[tokens: TokenSpec[]]>;
+	decoCache = new Map<string, Decoration>();
+	debouncedUpdate: Debouncer<[tokens: TokenSpec[]], Promise<void>>;
 
 	constructor(editor: EditorView, plugin: FaviconPlugin) {
 		this.editor = editor;
 		this.plugin = plugin;
-		this.debouncedUpdate = debounce(this.updateAsyncDecorations, this.plugin.settings.debounce, true);
+		this.debouncedUpdate = debounce(this.updateAsyncDecorations.bind(this), this.plugin.settings.debounce, true);
 	}
 
 	async computeAsyncDecorations(tokens: TokenSpec[]): Promise<DecorationSet | null> {
 		const decorations: Range<Decoration>[] = [];
 		for (const token of tokens) {
-			let deco = this.decoCache[token.value];
+			let deco = this.decoCache.get(token.value);
 			if (!deco) {
-				deco = this.decoCache[token.value] = Decoration.replace({});
+				deco = Decoration.replace({});
+				this.decoCache.set(token.value, deco);
 			}
 			decorations.push(deco.range(token.from, token.to));
 		}

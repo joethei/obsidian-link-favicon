@@ -2,7 +2,7 @@ import {App, ButtonComponent, Notice, PluginSettingTab, Setting} from "obsidian"
 import FaviconPlugin from "./main";
 import {providers} from "./provider";
 import {OverwrittenIconModal} from "./OverwrittenIconModal";
-import {getApi, isPluginEnabled} from "@aidenlx/obsidian-icon-shortcodes";
+import {getApi} from "@aidenlx/obsidian-icon-shortcodes";
 import {ProviderTestModal} from "./ProviderTestModal";
 import ls from "localstorage-slim";
 
@@ -64,7 +64,7 @@ export class FaviconSettings extends PluginSettingTab {
 			.setName("Icon provider")
 			.addDropdown((dropdown) => {
 				for (const id in providers) {
-					if (providers.hasOwnProperty(id)) {
+						if (Object.prototype.hasOwnProperty.call(providers, id)) {
 						dropdown.addOption(id, providers[id].name);
 					}
 				}
@@ -80,7 +80,7 @@ export class FaviconSettings extends PluginSettingTab {
 		if (Array.of("besticon").includes(this.plugin.settings.provider)) {
 			new Setting(containerEl)
 				.setName('Provider domain')
-				.setDesc('This Provider is selfhosted, please specify your deployment url. Refer to the readme of the provider for deployment instructions.')
+					.setDesc('This provider is selfhosted, please specify your deployment URL. Refer to the readme of the provider for deployment instructions.')
 				.addText(text => text
 					.setValue(this.plugin.settings.providerDomain)
 					.onChange(async (value) => {
@@ -93,7 +93,7 @@ export class FaviconSettings extends PluginSettingTab {
 			.setName("Fallback icon provider")
 			.addDropdown((dropdown) => {
 				for (const id in providers) {
-					if (providers.hasOwnProperty(id)) {
+						if (Object.prototype.hasOwnProperty.call(providers, id)) {
 						dropdown.addOption(id, providers[id].name);
 					}
 				}
@@ -109,7 +109,7 @@ export class FaviconSettings extends PluginSettingTab {
 		if (Array.of("besticon").includes(this.plugin.settings.fallbackProvider)) {
 			new Setting(containerEl)
 				.setName('Fallback provider domain')
-				.setDesc('This Provider is be selfhosted, please specify your deployment url. Refer to the readme of the provider for deployment instructions.')
+					.setDesc('This provider is be selfhosted, please specify your deployment URL. Refer to the readme of the provider for deployment instructions.')
 				.addText(text => text
 					.setValue(this.plugin.settings.fallbackProviderDomain)
 					.onChange(async (value) => {
@@ -121,7 +121,7 @@ export class FaviconSettings extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Not sure which provider to choose?')
 			.addButton(button =>
-				button.setButtonText("Test Providers")
+					button.setButtonText("Test providers")
 					.onClick(() => {
 						new ProviderTestModal(this.plugin).open();
 					})
@@ -142,11 +142,11 @@ export class FaviconSettings extends PluginSettingTab {
 				}
 			);
 
-		containerEl.createEl("h2", {text: "Design"});
+		new Setting(containerEl).setName("Design").setHeading();
 
 		new Setting(containerEl)
 			.setName('Show icon when link has alias')
-			.setDesc('When link is formatted like: [Obsidian](https://obsidian.md/)')
+				.setDesc('When link is formatted like: [Obsidian](HTTPS://Obsidian.md/)')
 			.addToggle(toggle => {
 				toggle
 					.setValue(this.plugin.settings.showAliased)
@@ -158,7 +158,7 @@ export class FaviconSettings extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Show icon when link has no alias')
-			.setDesc('When link is formatted like: https://obsidian.md/')
+				.setDesc('When link is formatted like: https://Obsidian.md/')
 			.addToggle(toggle => {
 				toggle
 					.setValue(this.plugin.settings.showLink)
@@ -171,7 +171,7 @@ export class FaviconSettings extends PluginSettingTab {
 		containerEl.createEl("hr");
 
 		new Setting(containerEl)
-			.setName('Show in Reading mode')
+				.setName('Show in reading mode')
 			.addToggle(toggle => {
 				toggle
 					.setValue(this.plugin.settings.enableReading)
@@ -182,7 +182,7 @@ export class FaviconSettings extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName('Show in Source mode')
+				.setName('Show in source mode')
 			.addToggle(toggle => {
 				toggle
 					.setValue(this.plugin.settings.enableSource)
@@ -204,7 +204,7 @@ export class FaviconSettings extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Icon Position")
+				.setName("Icon position")
 			.addDropdown(dropdown => {
 				dropdown
 					.addOption('front', "Before the link")
@@ -228,23 +228,24 @@ export class FaviconSettings extends PluginSettingTab {
 					});
 			});
 
-		if (isPluginEnabled(this.plugin)) {
-			const iconAPI = getApi(this.plugin)!;
-			containerEl.createEl("h2", {text: "Custom icons"});
+			const iconAPI = getApi(this.plugin);
+			if (iconAPI) {
+			new Setting(containerEl).setName("Custom icons").setHeading();
 
-			containerEl.createEl("h3", {text: "for domains"});
+				new Setting(containerEl).setName("For domains").setHeading();
 
 			new Setting(containerEl)
 				.setName("Add new")
-				.setDesc("Add custom icon")
+					.setDesc("Add custom icon")
 				.addButton((button: ButtonComponent): ButtonComponent => {
 					return button
-						.setTooltip("add custom icon")
+						.setTooltip("Add custom icon")
 						.setIcon("plus-with-circle")
-						.onClick(async () => {
+						.onClick(() => {
 							const modal = new OverwrittenIconModal(this.plugin);
 
-							modal.onClose = async () => {
+							modal.onClose = () => {
+								void (async () => {
 								if (modal.saved) {
 									this.plugin.settings.overwritten.push({
 										domain: modal.domain,
@@ -254,6 +255,7 @@ export class FaviconSettings extends PluginSettingTab {
 
 									this.display();
 								}
+								})();
 							};
 
 							modal.open();
@@ -276,23 +278,25 @@ export class FaviconSettings extends PluginSettingTab {
 					.addExtraButton((b) => {
 						b.setIcon("pencil")
 							.setTooltip("Edit")
-							.onClick(() => {
-								const modal = new OverwrittenIconModal(this.plugin, overwritten);
+								.onClick(() => {
+									const modal = new OverwrittenIconModal(this.plugin, overwritten);
 
-								modal.onClose = async () => {
-									if (modal.saved) {
-										const setting = this.plugin.settings.overwritten.filter((overwritten) => {
-											return overwritten.domain !== modal.domain;
+									modal.onClose = () => {
+										void (async () => {
+										if (modal.saved) {
+											const setting = this.plugin.settings.overwritten.filter((overwritten) => {
+												return overwritten.domain !== modal.domain;
 										})
 										setting.push({domain: modal.domain, icon: modal.icon});
 										this.plugin.settings.overwritten = setting;
 										await this.plugin.saveSettings();
 
-										this.display();
-									}
-								};
+											this.display();
+										}
+										})();
+									};
 
-								modal.open();
+									modal.open();
 							});
 					})
 					.addExtraButton((b) => {
@@ -311,19 +315,20 @@ export class FaviconSettings extends PluginSettingTab {
 			}
 
 
-			containerEl.createEl("h3", {text: "for URI schemas"});
+				new Setting(containerEl).setName("For uri schemas").setHeading();
 
 			new Setting(containerEl)
 				.setName("Add new")
-				.setDesc("Add custom icon")
+					.setDesc("Add custom icon")
 				.addButton((button: ButtonComponent): ButtonComponent => {
 					return button
-						.setTooltip("add custom icon")
+						.setTooltip("Add custom icon")
 						.setIcon("plus-with-circle")
-						.onClick(async () => {
+						.onClick(() => {
 							const modal = new OverwrittenIconModal(this.plugin, null, "URI Schema");
 
-							modal.onClose = async () => {
+							modal.onClose = () => {
+								void (async () => {
 								if (modal.saved) {
 									this.plugin.settings.protocol.push({
 										domain: modal.domain,
@@ -333,6 +338,7 @@ export class FaviconSettings extends PluginSettingTab {
 
 									this.display();
 								}
+								})();
 							};
 
 							modal.open();
@@ -355,22 +361,24 @@ export class FaviconSettings extends PluginSettingTab {
 					.addExtraButton((b) => {
 						b.setIcon("pencil")
 							.setTooltip("Edit")
-							.onClick(() => {
-								const modal = new OverwrittenIconModal(this.plugin, protocol, "URI Schema");
+								.onClick(() => {
+									const modal = new OverwrittenIconModal(this.plugin, protocol, "URI Schema");
 
-								modal.onClose = async () => {
-									if (modal.saved) {
-										const setting = this.plugin.settings.protocol.filter((overwritten) => {
-											return overwritten.domain !== modal.domain;
+									modal.onClose = () => {
+										void (async () => {
+										if (modal.saved) {
+											const setting = this.plugin.settings.protocol.filter((overwritten) => {
+												return overwritten.domain !== modal.domain;
 										})
 										setting.push({domain: modal.domain, icon: modal.icon});
 										this.plugin.settings.protocol = setting;
-										await this.plugin.saveSettings();
-										this.display();
-									}
-								};
+											await this.plugin.saveSettings();
+											this.display();
+										}
+										})();
+									};
 
-								modal.open();
+									modal.open();
 							});
 					})
 					.addExtraButton((b) => {
@@ -408,14 +416,15 @@ export class FaviconSettings extends PluginSettingTab {
 
 		}
 
-		if(localStorage.getItem('debug-plugin') === '1') {
-			containerEl.createEl('h1', {text: 'Debugging tools'});
+			const storage = activeWindow.localStorage;
+			if(this.app.loadLocalStorage('debug-plugin') === '1') {
+			new Setting(containerEl).setName("Debugging tools").setHeading();
 			containerEl.createEl('p', {text: 'Only use these tools if you know what you are doing'});
 
 			const cachedDetails = containerEl.createEl('details');
 			cachedDetails.createEl('summary', {text: 'Cached icons'});
 			const cached = cachedDetails.createDiv('cached');
-			Object.keys(localStorage).forEach((key) => {
+				Object.keys(storage).forEach((key) => {
 				if(key.startsWith("lf-")) {
 					cached.createEl('p', {text: key});
 					cached.createEl('img', {attr: {src: ls.get(key)}});
@@ -428,9 +437,9 @@ export class FaviconSettings extends PluginSettingTab {
 				.addButton(button => {
 					button.setButtonText('Clear')
 						.onClick(() => {
-							Object.keys(localStorage).forEach((key) => {
-								if(key.startsWith("lf-")) {
-									localStorage.removeItem(key);
+								Object.keys(storage).forEach((key) => {
+									if(key.startsWith("lf-")) {
+										storage.removeItem(key);
 								}
 							});
 							new Notice("Cleared cache");

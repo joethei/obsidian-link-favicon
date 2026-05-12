@@ -13,29 +13,29 @@ export default class FaviconPlugin extends Plugin {
 
 	private async getOverwrittenFavicon(favicons: OverwrittenFavicon[]) {
 		const iconApi = getApi(this);
-		if (!iconApi) return Promise.reject("No IconAPI loaded");
-		if (favicons.length === 0) return Promise.reject("No icons");
+		if (!iconApi) throw new Error("No IconAPI loaded");
+		if (favicons.length === 0) throw new Error("No icons");
 
 		const icon = favicons[0].icon;
 		if (iconApi.version.satisfies("^0.9.0")) {
 			const result = await iconApi.getSVGIcon(icon);
 			if (result) return result;
-			return Promise.reject();
+			throw new Error("No icon found");
 		}
-		const result = await iconApi.getIcon(icon);
+		const result = iconApi.getIcon(icon);
 		if (result) return result;
-		return Promise.reject();
+		throw new Error("No icon found");
 
 	}
 
 	async getCustomDomainIcon(domain: string): Promise<IconElement | undefined> {
 		const icons = this.settings.overwritten.filter(value => domain.match(value.domain));
-		return this.getOverwrittenFavicon(icons).then(res => res).catch(e => undefined);
+		return this.getOverwrittenFavicon(icons).then(res => res).catch(() => undefined);
 	}
 
 	async getCustomSchemeIcon(scheme: string): Promise<IconElement | undefined> {
-		const icons = this.settings.protocol.filter(value => scheme.substr(0, scheme.length - 1).match(value.domain));
-		return this.getOverwrittenFavicon(icons).then(res => res).catch(e => undefined);
+		const icons = this.settings.protocol.filter(value => scheme.substring(0, scheme.length - 1).match(value.domain));
+		return this.getOverwrittenFavicon(icons).then(res => res).catch(() => undefined);
 
 	}
 
@@ -44,8 +44,8 @@ export default class FaviconPlugin extends Plugin {
 		let url: URL;
 		try {
 			url = new URL(link);
-		} catch (e) {
-			return Promise.reject();
+		} catch {
+			throw new Error("Invalid URL");
 		}
 
 		//custom protocols
@@ -63,7 +63,7 @@ export default class FaviconPlugin extends Plugin {
 		//filtering out any empty values(otherwise no icons would show up ever)
 		const ignoredDomains = this.settings.ignored.split("\n").filter(value => value.length > 0);
 		if (ignoredDomains.some(value => url.hostname.match(new RegExp(value)))) {
-			return Promise.reject();
+			throw new Error("Ignored domain");
 		}
 
 		//custom domain icons
@@ -81,7 +81,7 @@ export default class FaviconPlugin extends Plugin {
 			return await provider.url(url.hostname, this.settings);
 		} catch (e) {
 			console.error(e);
-			return Promise.reject();
+			throw new Error("Provider failed");
 		}
 		return "";
 	}
@@ -90,12 +90,12 @@ export default class FaviconPlugin extends Plugin {
 	 * @returns true if Live Preview is supported
 	 */
 	isUsingLivePreviewEnabledEditor(): boolean {
-		//@ts-ignore
-		return !app.vault.getConfig('legacyEditor');
+		const vault = this.app.vault as unknown as {getConfig(key: string): boolean};
+		return !vault.getConfig('legacyEditor');
 	}
 
 	override async onload() {
-		console.log("enabling plugin: link favicons");
+		console.debug("enabling plugin: link favicons");
 		await this.loadSettings();
 		this.iconAdder = new IconAdder(this);
 
@@ -112,10 +112,8 @@ export default class FaviconPlugin extends Plugin {
 		this.addSettingTab(new FaviconSettings(this.app, this));
 
 		if (this.isUsingLivePreviewEnabledEditor()) {
-			//eslint-disable-next-line @typescript-eslint/no-var-requires
-			const asyncDecoBuilderExt = require('./decoration/icon/IconDecorations').asyncDecoBuilderExt;
-			//eslint-disable-next-line @typescript-eslint/no-var-requires
-			const Prec = require("@codemirror/state").Prec;
+			const {asyncDecoBuilderExt} = await import("./decoration/icon/IconDecorations");
+			const {Prec} = await import("@codemirror/state");
 			this.registerEditorExtension(Prec.lowest(asyncDecoBuilderExt(this)));
 			this.registerEditorExtension(Prec.lowest(textRemovingDecoration(this)));
 		}
@@ -127,11 +125,11 @@ export default class FaviconPlugin extends Plugin {
 
 	override onunload() {
 		this.iconAdder.destruct();
-		console.log("disabling plugin: link favicons");
+		console.debug("disabling plugin: link favicons");
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<FaviconPluginSettings>);
 	}
 
 	async saveSettings() {

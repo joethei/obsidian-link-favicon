@@ -24,7 +24,7 @@ export class ProviderTestModal extends Modal {
 				});
 			text.inputEl.addEventListener('keydown', (event) => {
 				if (event.key === 'Enter') {
-					this.display();
+						void this.display();
 				}
 			});
 		});
@@ -32,7 +32,7 @@ export class ProviderTestModal extends Modal {
 			button
 				.setButtonText("Test")
 				.onClick(() => {
-					this.display();
+						void this.display();
 				});
 		});
 
@@ -48,7 +48,7 @@ export class ProviderTestModal extends Modal {
 					const preview = contentEl.createEl("img", {cls: "provider-preview"});
 					preview.setAttribute("src", await provider.url(url.hostname, this.plugin.settings));
 				}
-			}catch (e) {
+			}catch {
 				contentEl.createSpan({text: "Could not generate favicon, check your settings"});
 			}
 
@@ -57,7 +57,7 @@ export class ProviderTestModal extends Modal {
 
 	}
 
-	override async onOpen() {
-		await this.display();
+	override onOpen(): void {
+		void this.display();
 	}
 }

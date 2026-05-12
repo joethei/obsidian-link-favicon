@@ -25,7 +25,7 @@ export class IconAdder {
 	public constructURL(link: string): URL | undefined {
 		try {
 			return new URL(link);
-		} catch (e) {
+		} catch {
 			//we have a link without a protocol for some reason
 			if(!link.startsWith("http")) return this.constructURL("http://" + link);
 			return undefined;
@@ -34,7 +34,7 @@ export class IconAdder {
 
 	public async addFavicon(el: HTMLElement, icon: IconElement, fallbackIcon: IconElement, url: URL) {
 		if ((!icon || icon === "") && (!fallbackIcon || fallbackIcon === "")) {
-			console.log("no icon for " + url.href);
+				console.debug("no icon for " + url.href);
 			return;
 		}
 
@@ -62,7 +62,7 @@ export class IconAdder {
 	public async getImageEl(icon: string, qualifier: string | URL): Promise<HTMLImageElement> {
 		if (typeof qualifier === "string") {
 			const url = this.constructURL(qualifier);
-			if (!url) return Promise.reject("could not get Object for " + icon + " " + qualifier);
+			if (!url) return Promise.reject(new Error("could not get Object for " + icon + " " + qualifier));
 			return this.getImageElFromUrl(icon, url);
 
 		} else {
@@ -82,8 +82,10 @@ export class IconAdder {
 
 		//making sure these styles will not be overwritten by any other theme/plugin
 		//i.e. page preview sets height: auto, which creates huge icons.
-		el.style.height = "0.8em";
-		el.style.display = "inline-block";
+		el.setCssProps({
+			height: "0.8em",
+			display: "inline-block",
+		});
 
 		return el;
 	}
@@ -160,7 +162,7 @@ export class IconAdder {
 	private async downloadIcon(iconUrl: string): Promise<string> {
 		const request = await requestUrl({url: iconUrl});
 		if (request.status !== 200) {
-			return Promise.reject("server returned status code" + request.status + " for " + iconUrl);
+			return Promise.reject(new Error("server returned status code" + request.status + " for " + iconUrl));
 		}
 		return "data:image/png;base64," + arrayBufferToBase64(request.arrayBuffer);
 	}
@@ -182,7 +184,7 @@ export class IconAdder {
 			try {
 				const style = activeWindow.getComputedStyle(darkEl);
 				background = style.getPropertyValue('--background-primary');
-			} catch (e) {
+			} catch {
 				background = "000000";
 			}
 
@@ -190,7 +192,7 @@ export class IconAdder {
 			try {
 				const style = activeWindow.getComputedStyle(lightEl);
 				background = style.getPropertyValue('--background-primary');
-			} catch (e) {
+			} catch {
 				background = "FFFFFF";
 			}
 		}
