@@ -9,6 +9,11 @@ on:
 env:
     PLUGIN_NAME: link-favicon
 
+permissions:
+    id-token: write
+    contents: read
+    attestations: write
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -84,3 +89,11 @@ jobs:
                     asset_path: ./build/styles.css
                     asset_name: styles.css
                     asset_content_type: text/css
+            -   name: Attest build provenance
+                uses: actions/attest-build-provenance@v2
+                with:
+                    subject-path: |
+                        ./${{ env.PLUGIN_NAME }}.zip
+                        ./build/main.js
+                        ./build/manifest.json
+                        ./build/styles.css
