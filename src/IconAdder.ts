@@ -34,7 +34,7 @@ export class IconAdder {
 
 	public async addFavicon(el: HTMLElement, icon: IconElement, fallbackIcon: IconElement, url: URL) {
 		if ((!icon || icon === "") && (!fallbackIcon || fallbackIcon === "")) {
-				console.debug("no icon for " + url.href);
+			console.debug("no icon for " + url.href);
 			return;
 		}
 
@@ -167,6 +167,43 @@ export class IconAdder {
 		return "data:image/png;base64," + arrayBufferToBase64(request.arrayBuffer);
 	}
 
+	private async waitForImageSize(img: HTMLImageElement): Promise<boolean> {
+		if (img.complete) {
+			return img.naturalWidth > 0 && img.naturalHeight > 0;
+		}
+
+		if (img.decode) {
+			try {
+				await img.decode();
+				return img.naturalWidth > 0 && img.naturalHeight > 0;
+			} catch {
+				return false;
+			}
+		}
+
+		return new Promise((resolve) => {
+			const cleanup = () => {
+				img.removeEventListener("load", onLoad);
+				img.removeEventListener("error", onError);
+			};
+			const onLoad = () => {
+				cleanup();
+				resolve(img.naturalWidth > 0 && img.naturalHeight > 0);
+			};
+			const onError = () => {
+				cleanup();
+				resolve(false);
+			};
+
+			img.addEventListener("load", onLoad, {once: true});
+			img.addEventListener("error", onError, {once: true});
+			window.setTimeout(() => {
+				cleanup();
+				resolve(false);
+			}, 1000);
+		});
+	}
+
 	/**
 	 * retrieve color data about icon and add it as CSS attributes.
 	 * The CSS will then change the coloring based on these values.
@@ -197,6 +234,9 @@ export class IconAdder {
 			}
 		}
 		try {
+			if (!await this.waitForImageSize(img)) {
+				return;
+			}
 			const color = await this.fac.getColorAsync(img);
 
 			img.dataset.averageColorHex = color.hex;

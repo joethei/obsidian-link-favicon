@@ -6,6 +6,8 @@ import {PostProcessor} from "./PostProcessor";
 import {textRemovingDecoration} from "./decoration/text/TextRemovingDecoration";
 import {IconElement} from "./types";
 import {IconAdder} from "./IconAdder";
+import {asyncDecoBuilderExt} from "./decoration/icon/IconDecorations";
+import {Prec} from "@codemirror/state";
 
 export default class FaviconPlugin extends Plugin {
 	settings!: FaviconPluginSettings;
@@ -86,13 +88,6 @@ export default class FaviconPlugin extends Plugin {
 		return "";
 	}
 
-	/**
-	 * @returns true if Live Preview is supported
-	 */
-	isUsingLivePreviewEnabledEditor(): boolean {
-		const vault = this.app.vault as unknown as {getConfig(key: string): boolean};
-		return !vault.getConfig('legacyEditor');
-	}
 
 	override async onload() {
 		console.debug("enabling plugin: link favicons");
@@ -111,12 +106,9 @@ export default class FaviconPlugin extends Plugin {
 
 		this.addSettingTab(new FaviconSettings(this.app, this));
 
-		if (this.isUsingLivePreviewEnabledEditor()) {
-			const {asyncDecoBuilderExt} = await import("./decoration/icon/IconDecorations");
-			const {Prec} = await import("@codemirror/state");
-			this.registerEditorExtension(Prec.lowest(asyncDecoBuilderExt(this)));
-			this.registerEditorExtension(Prec.lowest(textRemovingDecoration(this)));
-		}
+		this.registerEditorExtension(Prec.lowest(asyncDecoBuilderExt(this)));
+		this.registerEditorExtension(Prec.lowest(textRemovingDecoration(this)));
+
 
 		const processor = new PostProcessor(this);
 		this.registerMarkdownPostProcessor(processor.processor);

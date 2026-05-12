@@ -1,5 +1,5 @@
 import {EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view";
-import {syntaxTree, tokenClassNodeProp} from "@codemirror/language";
+import {syntaxTree} from "@codemirror/language";
 import FaviconPlugin from "../../main";
 import {TokenSpec} from "../TokenSpec";
 import {IconDecorationSet} from "./IconDecorationSet";
@@ -50,10 +50,8 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 						from,
 						to,
 						enter: (node) => {
-							const tokenProps = node.type.prop<string>(tokenClassNodeProp);
-							if (tokenProps) {
-								const props = new Set(tokenProps.split(" "));
-								const isExternalLink = props.has("url");
+							if (node.name.toLowerCase().includes("url")) {
+								const isExternalLink = true;
 								let linkText = view.state.sliceDoc(node.from, node.to);
 								if (isExternalLink && linkText.includes(":")) {
 									linkText = linkText.replace(/[<>]/g, '');
