@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "node esbuild.config.mjs production",
-		"lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+		"lint": "eslint .",
 		"lint-css": "stylelint src/styles.scss",
 		"test": "jest"
 	},
@@ -16,7 +16,7 @@
 	"devDependencies": {
 		"@eslint/js": "^9.30.1",
 		"@eslint/json": "0.14.0",
-		"esbuild": "0.13.12",
+		"esbuild": "0.28.0",
 		"eslint": "^9.39.4",
 		"sass": "1.49.9",
 		"css-minify": "2.0.0",
@@ -26,10 +26,6 @@
 		"jest": "28.1.3",
 		"@types/jest": "28.1.6",
 		"ts-jest": "28.0.7",
-		"jsdom": "20.0.0",
-		"@types/jsdom": "20.0.0",
-		"jsdom-global": "3.0.2",
-		"jest-environment-jsdom": "28.1.3",
 		"eslint-plugin-obsidianmd": "^0.3.0",
 		"typescript-eslint": "^8.59.3"
 	},
@@ -47,7 +43,6 @@
 		"tinycolor2": "1.6.0",
 		"@types/tinycolor2": "1.4.4",
 		"localstorage-slim": "2.3.0",
-		"builtin-modules": "3.2.0",
 		"localforage": "1.10.0"
 	},
 	"overrides": {
