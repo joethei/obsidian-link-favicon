@@ -1,7 +1,7 @@
 import {vi} from "vitest";
 import {EditorState} from "@codemirror/state";
 import {EditorView} from "@codemirror/view";
-import {markdown} from "@codemirror/lang-markdown";
+import {markdown, markdownLanguage} from "@codemirror/lang-markdown";
 import {editorLivePreviewField, MarkdownPostProcessorContext} from "obsidian";
 import FaviconPlugin from "../src/main";
 import {DEFAULT_SETTINGS, FaviconPluginSettings} from "../src/settings";
@@ -58,8 +58,9 @@ export function externalLink(href: string, text = href): string {
 /**
  * an editor with the plugin's icon decorations. The syntax tree comes from @codemirror/lang-markdown,
  * which names link targets `URL` like Obsidian's parser does, but can differ in the details.
+ * `gfm` parses GitHub flavored markdown, which links bare URLs and emails like Obsidian does.
  */
-export function createEditor(plugin: FaviconPlugin, doc: string, options: {livePreview?: boolean} = {}): EditorView {
+export function createEditor(plugin: FaviconPlugin, doc: string, options: {livePreview?: boolean, gfm?: boolean} = {}): EditorView {
 	const parent = document.createElement("div");
 	document.body.appendChild(parent);
 	return new EditorView({
@@ -67,7 +68,7 @@ export function createEditor(plugin: FaviconPlugin, doc: string, options: {liveP
 		state: EditorState.create({
 			doc,
 			extensions: [
-				markdown(),
+				options.gfm ? markdown({base: markdownLanguage}) : markdown(),
 				editorLivePreviewField.init(() => options.livePreview ?? true),
 				asyncDecoBuilderExt(plugin),
 			],
