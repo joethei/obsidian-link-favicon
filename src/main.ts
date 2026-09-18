@@ -102,6 +102,8 @@ export default class FaviconPlugin extends Plugin {
 		//respond to app events to fix #37
 		this.registerEvent(this.app.workspace.on('css-change', () => {
 			this.app.workspace.updateOptions();
+			//icons that are already rendered were compared against the background of the previous theme (#50)
+			this.app.workspace.iterateAllLeaves(leaf => this.iconAdder.updateReadabilityAttributes(leaf.view.containerEl));
 		}));
 
 		this.addSettingTab(new FaviconSettings(this.app, this));
