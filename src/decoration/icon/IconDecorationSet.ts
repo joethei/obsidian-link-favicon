@@ -29,8 +29,10 @@ export class IconDecorationSet {
 				const fallbackProvider = providers[this.plugin.settings.fallbackProvider];
 
 					if (!provider || !fallbackProvider) continue;
-					const icon = await this.plugin.getIcon(token.value, provider);
-					const fallbackIcon = await this.plugin.getIcon(token.value, fallbackProvider);
+					//ignored domains, invalid links and failing providers have no icon, keep going with the other links
+					const icon = await this.plugin.getIcon(token.value, provider).catch(() => "");
+					const fallbackIcon = await this.plugin.getIcon(token.value, fallbackProvider).catch(() => "");
+					if (!icon && !fallbackIcon) continue;
 				const url = this.plugin.iconAdder.constructURL(token.value);
 				if (url) {
 					const domain = url.protocol.contains("http") ? url.hostname : url.protocol;
