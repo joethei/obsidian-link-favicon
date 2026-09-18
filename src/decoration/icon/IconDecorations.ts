@@ -78,6 +78,8 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 									if (open === -1) {
 										return;
 									}
+									//image embed: ![alt](url)
+									if (line.text[open - 1] === "!") return;
 
 									const fromTarget = line.from + open;
 									const fullText = view.state.sliceDoc(fromTarget, node.to);
