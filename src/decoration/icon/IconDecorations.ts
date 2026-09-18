@@ -23,7 +23,9 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 
 			update(update: ViewUpdate) {
 				const differentModes = update.startState.field(editorLivePreviewField) != update.state.field(editorLivePreviewField);
-				if (update.docChanged || update.viewportChanged || differentModes) {
+				//the document is parsed in the background, links it had not reached yet are only found once the tree changes
+				const treeChanged = syntaxTree(update.startState) != syntaxTree(update.state);
+				if (update.docChanged || update.viewportChanged || differentModes || treeChanged) {
 					this.buildAsyncDecorations(update.view);
 				}
 			}
