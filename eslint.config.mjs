@@ -22,16 +22,20 @@ export default defineConfig([
 		},
 	},
 	{
-		files: ["test/**/*.ts"],
-		languageOptions: {
-			globals: {
-				afterEach: "readonly",
-				beforeEach: "readonly",
-				describe: "readonly",
-				expect: "readonly",
-				jest: "readonly",
-				test: "readonly",
-			},
+		//tests run in node + jsdom, not in an Obsidian window
+		files: ["test/**/*.ts", "vitest.config.ts"],
+		rules: {
+			"no-undef": "off",
+			"no-restricted-globals": "off",
+			"import/no-nodejs-modules": "off",
+			"obsidianmd/prefer-window-timers": "off",
+			"obsidianmd/prefer-active-doc": "off",
+			"obsidianmd/prefer-instanceof": "off",
+			"obsidianmd/no-global-this": "off",
+			"obsidianmd/hardcoded-config-path": "off",
+			//fixtures are built from html strings
+			"no-unsanitized/property": "off",
+			"@microsoft/sdl/no-inner-html": "off",
 		},
 	},
 ]);
