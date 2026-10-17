@@ -25,3 +25,14 @@
 	overflow: auto;
 	height: 60vh;
 }
+
+/* minimal theme image grids: don't turn paragraphs into grids when the only images are favicons */
+.img-grid .markdown-preview-section > div:has(img.link-favicon):not(:has(img:not(.link-favicon))) > p {
+	display: block;
+	margin-block-start: var(--p-spacing);
+	margin-block-end: var(--p-spacing);
+
+	> br {
+		display: inline;
+	}
+}
