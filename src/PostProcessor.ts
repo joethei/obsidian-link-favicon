@@ -65,11 +65,12 @@ export class PostProcessor {
 
 					link.dataset.favicon = "true";
 
-					const icon = await this.plugin.getIcon(link.href, provider);
-					const fallbackIcon = await this.plugin.getIcon(link.href, fallbackProvider);
+					//ignored domains, invalid links and failing providers have no icon, keep going with the other links
+					const icon = await this.plugin.getIcon(link.href, provider).catch(() => "");
+					const fallbackIcon = await this.plugin.getIcon(link.href, fallbackProvider).catch(() => "");
 
 					const url = this.plugin.iconAdder.constructURL(link.href);
-					if(!url) return;
+					if(!url) continue;
 
 					try {
 						await this.plugin.iconAdder.addFavicon(link, icon, fallbackIcon, url);
