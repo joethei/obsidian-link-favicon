@@ -237,28 +237,6 @@ export class IconAdder {
 	 * @private
 	 */
 	private async setColorAttributes(img: HTMLImageElement) {
-		const darkEl = activeDocument.getElementsByClassName("theme-dark")[0];
-		const lightEl = activeDocument.getElementsByClassName("theme-light")[0];
-
-
-		let background: string;
-
-		if (darkEl !== undefined) {
-			try {
-				const style = activeWindow.getComputedStyle(darkEl);
-				background = style.getPropertyValue('--background-primary');
-			} catch {
-				background = "000000";
-			}
-
-		} else {
-			try {
-				const style = activeWindow.getComputedStyle(lightEl);
-				background = style.getPropertyValue('--background-primary');
-			} catch {
-				background = "FFFFFF";
-			}
-		}
 		try {
 			if (!await this.waitForImageSize(img)) {
 				return;
@@ -268,17 +246,62 @@ export class IconAdder {
 			img.dataset.averageColorHex = color.hex;
 			img.dataset.isDark = String(color.isDark);
 			img.dataset.isLight = String(color.isLight);
-			const backgroundColor = tinycolor(background);
 			img.dataset.colorInversion = String(this.plugin.settings.colorInversion);
-			img.dataset.readable = tinycolor.readability(color.hex, backgroundColor).toString();
-			img.dataset.isReadableAA = String(tinycolor.isReadable(color.hex, backgroundColor));
-			img.dataset.isReadableAAA = String(tinycolor.isReadable(color.hex, backgroundColor, {level: "AAA"}));
+			this.setReadabilityAttributes(img);
 
 		} catch (e) {
 			console.error("could not extract color information from icon");
 			console.error(img);
 			console.error(e);
 		}
+	}
+
+	/**
+	 * compare the icon color with the background of the current theme.
+	 * @param img image element with the average color in data-average-color-hex
+	 * @private
+	 */
+	private setReadabilityAttributes(img: HTMLImageElement) {
+		const color = img.dataset.averageColorHex;
+		if (!color) return;
+
+		const doc = img.ownerDocument;
+		const win = doc.defaultView ?? activeWindow;
+		const darkEl = doc.getElementsByClassName("theme-dark")[0];
+		const lightEl = doc.getElementsByClassName("theme-light")[0];
+
+
+		let background: string;
+
+		if (darkEl !== undefined) {
+			try {
+				const style = win.getComputedStyle(darkEl);
+				background = style.getPropertyValue('--background-primary');
+			} catch {
+				background = "000000";
+			}
+
+		} else {
+			try {
+				const style = win.getComputedStyle(lightEl);
+				background = style.getPropertyValue('--background-primary');
+			} catch {
+				background = "FFFFFF";
+			}
+		}
+
+		const backgroundColor = tinycolor(background);
+		img.dataset.readable = tinycolor.readability(color, backgroundColor).toString();
+		img.dataset.isReadableAA = String(tinycolor.isReadable(color, backgroundColor));
+		img.dataset.isReadableAAA = String(tinycolor.isReadable(color, backgroundColor, {level: "AAA"}));
+	}
+
+	/**
+	 * the readability depends on the theme, update it for icons that are already rendered.
+	 * @param el element containing the icons
+	 */
+	public updateReadabilityAttributes(el: ParentNode) {
+		el.querySelectorAll<HTMLImageElement>("img.link-favicon[data-average-color-hex]").forEach(img => this.setReadabilityAttributes(img));
 	}
 
 
