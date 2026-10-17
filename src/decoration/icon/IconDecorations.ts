@@ -53,6 +53,11 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 							if (node.name.toLowerCase().includes("url")) {
 								const isExternalLink = true;
 								let linkText = view.state.sliceDoc(node.from, node.to);
+								//bare emails are linked as mailto:, [text](email) is an internal link
+								const isAliased = view.state.doc.sliceString(node.from - 2, node.from) === "](";
+								if (!isAliased && /^[^\s:/@<>]+@[^\s:/@<>]+$/.test(linkText)) {
+									linkText = "mailto:" + linkText;
+								}
 								if (isExternalLink && linkText.includes(":")) {
 									linkText = linkText.replace(/[<>]/g, '');
 									//only [text](url) is aliased, (url) is a raw link in parentheses
