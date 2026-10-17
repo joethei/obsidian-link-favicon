@@ -40,7 +40,11 @@ export class IconWidget extends WidgetType {
 		}
 
 		const span = activeDocument.createElement("span");
-		this.plugin.iconAdder.getImageEl(this.icon, this.qualifier).then((obj) => {
+		this.plugin.iconAdder.getImageEl(this.icon, this.qualifier).catch((e) => {
+			//the icon could not be downloaded or is not an image, use the fallback provider instead
+			if (typeof this.fallbackIcon !== "string" || !this.fallbackIcon.startsWith("http")) throw e;
+			return this.plugin.iconAdder.getImageEl(this.fallbackIcon, this.qualifier);
+		}).then((obj) => {
 			span.append(obj);
 		}).catch((e) => {
 			console.error(e);

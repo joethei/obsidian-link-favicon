@@ -23,7 +23,9 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 
 			update(update: ViewUpdate) {
 				const differentModes = update.startState.field(editorLivePreviewField) != update.state.field(editorLivePreviewField);
-				if (update.docChanged || update.viewportChanged || differentModes) {
+				//the document is parsed in the background, links it had not reached yet are only found once the tree changes
+				const treeChanged = syntaxTree(update.startState) != syntaxTree(update.state);
+				if (update.docChanged || update.viewportChanged || differentModes || treeChanged) {
 					this.buildAsyncDecorations(update.view);
 				}
 			}
@@ -53,10 +55,16 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 							if (node.name.toLowerCase().includes("url")) {
 								const isExternalLink = true;
 								let linkText = view.state.sliceDoc(node.from, node.to);
+								//bare emails are linked as mailto:, [text](email) is an internal link
+								const isAliased = view.state.doc.sliceString(node.from - 2, node.from) === "](";
+								if (!isAliased && /^[^\s:/@<>]+@[^\s:/@<>]+$/.test(linkText)) {
+									linkText = "mailto:" + linkText;
+								}
 								if (isExternalLink && linkText.includes(":")) {
 									linkText = linkText.replace(/[<>]/g, '');
-									const before = view.state.doc.sliceString(node.from - 1, node.from);
-									if (before !== "(") {
+									//only [text](url) is aliased, (url) is a raw link in parentheses
+									const before = view.state.doc.sliceString(node.from - 2, node.from);
+									if (before !== "](") {
 										if (!plugin.settings.showLink) return;
 										if (plugin.settings.iconPosition === "front") {
 											targetElements.push({from: node.from, to: node.to, value: linkText});
@@ -78,6 +86,8 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 									if (open === -1) {
 										return;
 									}
+									//image embed: ![alt](url)
+									if (line.text[open - 1] === "!") return;
 
 									const fromTarget = line.from + open;
 									const fullText = view.state.sliceDoc(fromTarget, node.to);

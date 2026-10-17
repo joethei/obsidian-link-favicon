@@ -41,6 +41,15 @@ export default class FaviconPlugin extends Plugin {
 
 	}
 
+	private matchesIgnored(hostname: string, value: string): boolean {
+		try {
+			return new RegExp(value).test(hostname);
+		} catch {
+			//not a valid regex, compare as plain text
+			return hostname.includes(value);
+		}
+	}
+
 	async getIcon(link: string, provider: IconProvider): Promise<IconElement> {
 
 		let url: URL;
@@ -63,8 +72,8 @@ export default class FaviconPlugin extends Plugin {
 
 
 		//filtering out any empty values(otherwise no icons would show up ever)
-		const ignoredDomains = this.settings.ignored.split("\n").filter(value => value.length > 0);
-		if (ignoredDomains.some(value => url.hostname.match(new RegExp(value)))) {
+		const ignoredDomains = this.settings.ignored.split("\n").map(value => value.trim()).filter(value => value.length > 0);
+		if (ignoredDomains.some(value => this.matchesIgnored(url.hostname, value))) {
 			throw new Error("Ignored domain");
 		}
 
@@ -102,6 +111,8 @@ export default class FaviconPlugin extends Plugin {
 		//respond to app events to fix #37
 		this.registerEvent(this.app.workspace.on('css-change', () => {
 			this.app.workspace.updateOptions();
+			//icons that are already rendered were compared against the background of the previous theme (#50)
+			this.app.workspace.iterateAllLeaves(leaf => this.iconAdder.updateReadabilityAttributes(leaf.view.containerEl));
 		}));
 
 		this.addSettingTab(new FaviconSettings(this.app, this));
@@ -122,6 +133,13 @@ export default class FaviconPlugin extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<FaviconPluginSettings>);
+		//ignored domains are a string with one domain per line, but accept a stored list too
+		const ignored: unknown = this.settings.ignored;
+		if (Array.isArray(ignored)) {
+			this.settings.ignored = ignored.join("\n");
+		} else if (typeof ignored !== "string") {
+			this.settings.ignored = "";
+		}
 	}
 
 	async saveSettings() {

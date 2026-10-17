@@ -4,6 +4,7 @@
  */
 import {afterEach, vi} from "vitest";
 import {Notice, requestUrl} from "./mocks/obsidian";
+import "./mocks/image";
 
 const nodeProto = Node.prototype as unknown as Record<string, unknown>;
 const elementProto = Element.prototype as unknown as Record<string, unknown>;
