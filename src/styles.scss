@@ -1,6 +1,6 @@
 .link-favicon {
-	vertical-align: bottom;
-	margin-bottom: 0.3em;
+	/* sit on the baseline like a capital letter, independent of the line height */
+	vertical-align: baseline;
 	margin-left: 0.1em;
 	margin-right: 0.1em;
 	cursor: pointer !important;
