@@ -37,7 +37,8 @@ export class IconDecorationSet {
 				if (url) {
 					const domain = url.protocol.contains("http") ? url.hostname : url.protocol;
 
-						deco = Decoration.widget({widget: new IconWidget(this.plugin, icon, fallbackIcon, domain, token)});
+						//side -1: draw before widgets of other plugins starting at the same position (MathLinks, #72)
+						deco = Decoration.widget({widget: new IconWidget(this.plugin, icon, fallbackIcon, domain, token), side: -1});
 						this.decoCache.set(token.value, deco);
 					}
 
