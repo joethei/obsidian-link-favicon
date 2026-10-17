@@ -50,8 +50,14 @@ export class IconAdder {
 				return;
 			}
 
-			const objEl = await this.getImageEl(icon, url);
-			this.addIcon(el, objEl);
+			try {
+				const objEl = await this.getImageEl(icon, url);
+				this.addIcon(el, objEl);
+			} catch (e) {
+				//the icon could not be downloaded or is not an image, use the fallback provider instead
+				console.debug(e);
+				await this.useDownloadedIcon(fallbackIcon, el, url);
+			}
 
 			return;
 		}
@@ -142,10 +148,15 @@ export class IconAdder {
 
 		const entry = ls.get<string>(name);
 		if (entry) {
-			return entry;
+			if (await this.isValidImage(entry)) return entry;
+			//cached by an older version, without checking that it is an image
+			ls.remove(name);
 		}
 
 		const downloaded = await this.downloadIcon(icon);
+		if (!await this.isValidImage(downloaded)) {
+			return Promise.reject(new Error("could not decode icon " + icon));
+		}
 
 		//cache for one month
 		ls.set<string>(name, downloaded, {ttl: 30 * 24 * 60 * 60});
@@ -164,7 +175,22 @@ export class IconAdder {
 		if (request.status !== 200) {
 			return Promise.reject(new Error("server returned status code" + request.status + " for " + iconUrl));
 		}
-		return "data:image/png;base64," + arrayBufferToBase64(request.arrayBuffer);
+		//use the type the server sent, an svg labeled as png is not displayed
+		const contentType = Object.entries(request.headers ?? {}).find(([key]) => key.toLowerCase() === "content-type")?.[1];
+		const mimeType = contentType?.split(";")[0].trim().toLowerCase();
+		const type = mimeType?.startsWith("image/") ? mimeType : "image/png";
+		return "data:" + type + ";base64," + arrayBufferToBase64(request.arrayBuffer);
+	}
+
+	/**
+	 * check that the browser can decode the icon, so no broken image is shown
+	 * @param src icon as data url
+	 * @private
+	 */
+	private async isValidImage(src: string): Promise<boolean> {
+		const img = activeDocument.createElement("img");
+		img.src = src;
+		return this.waitForImageSize(img);
 	}
 
 	private async waitForImageSize(img: HTMLImageElement): Promise<boolean> {
