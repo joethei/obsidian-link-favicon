@@ -55,8 +55,9 @@ function buildViewPlugin(plugin: FaviconPlugin) {
 								let linkText = view.state.sliceDoc(node.from, node.to);
 								if (isExternalLink && linkText.includes(":")) {
 									linkText = linkText.replace(/[<>]/g, '');
-									const before = view.state.doc.sliceString(node.from - 1, node.from);
-									if (before !== "(") {
+									//only [text](url) is aliased, (url) is a raw link in parentheses
+									const before = view.state.doc.sliceString(node.from - 2, node.from);
+									if (before !== "](") {
 										if (!plugin.settings.showLink) return;
 										if (plugin.settings.iconPosition === "front") {
 											targetElements.push({from: node.from, to: node.to, value: linkText});
